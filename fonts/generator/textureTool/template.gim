@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<metadata>
+    <ignore>true</ignore>
+    <images>
+        <image name="sourceImage1.png"/>
+        <image name="sourceImage2.png"/>
+        <image name="sourceImage3.png"/>
+    </images>
+    <srgb>true</srgb>
+    <numMipmaps>max</numMipmaps>
+    <hasExistingMipmaps>true</hasExistingMipmaps>
+    <format>bc1</format>
+    <textureType>2d</textureType>
+    <idealOrigin>topLeft</idealOrigin>
+    <quality>standard</quality>
+    <signedDistanceWidth>4</signedDistanceWidth>
+    <downScaleFactor>2</downScaleFactor>
+    <mipmapAlphaBoost>true</mipmapAlphaBoost>
+    <mipmapAlphaBoostThresholds>0.25;0.5;0.75</mipmapAlphaBoostThresholds>
+    <roughnessChannel>r</roughnessChannel>
+    <normalMapImages>
+        <image name="normalMapImage1.png"/>
+        <image name="normalMap2.png"/>
+        <image name="normalMap3.png"/>
+    </normalMapImages>
+    <normalMapFormat>rgb</normalMapFormat>
+    <normalizeImage>false</normalizeImage>
+    <normalizeMipmaps>false</normalizeMipmaps>
+</metadata>
+
+<!--
+All options are optional. Even the meta file itself is optional.
+
+<ignore>: bool, default=false. Disable conversion of source file (useful if adding to global exclude filter is not practical). Default: false
+<images>: List of <image name=""> nodes, default=Single node with name=<filename of gim>.png or <filename of gim>_uncompressed.dds
+          Images, main uses are:
+          - source file is not located in the same directory as the target file
+          - target file is an array, cube or 3d texture
+          Supported input file types:
+          - png
+          - uncompressed dds (filename must end with _uncompressed.dds, format must be uncompressed)
+<srgb>: bool, default=true for *_diffuse, false otherwise. If true, the image is conseridered to be in non-linear srgb colorspace (default for color data). This will affect the compression error metrics and the generation of mipmap data.
+<numMipmaps>: integer/string, default='max'. The number of mipmaps to generatate. Either 'max' (default) or an integer. The number of mipmaps is not including the base level. So num=0 will result in just a single level and num=1 results in two levels.
+<hasExistingMipmaps>: bool, default=true if the resolution matches on of the possible resultions with pregenerated mipmaps, false otherwise.
+                      If true, the mipmaps are considered to be stored in the source image. Each mipmap should be placed next to the right of the higher resolution mipmap.
+                      E.g. an image with the resolution 512x512 and 2 mip maps will have the resolution 896x512.
+                      Mip0 starts at 0x0, Mip1 starts at 512x0 and Mip 2 starts at 768x0. (The origin is at top-left)
+                      Since the tool enables this option automatically if one of the possible resolutions is used, this setting almost never has to be specified.
+<format>: enum=[bc1, bc3, bc4, bc4s, bc5, bc5s, bc6, bc7, r8, rg16, rgb24, bgr24, rgba32, bgra32, rgba64f, rgba128f]
+          Default:
+          - Float texture: bc6
+          - 1 channel texture: bc4
+          - 3 channel texture: bc1
+          - 4 channel texture: bc7
+<textureType>: 2d (default), 2darray, cube, 3d
+<idealOrigin>: enum=[topLeft, bottomLeft], default=bottomLeft
+               Origin placement. Is ignored unless the tool is run with -storeWithIdealOrigin.
+               This option is needed for special cases, for example font textures which need to be
+               topLeft instead of default (bottomLeft)
+               Note that the tool handles some special cases correctly by default (i.e. cube, 3d)
+               For mods, the tool should never be run with -storeWithIdealOrigin
+<quality>: enum=[low, standard]
+           Quality of the converted image. Standard should be used for final images. Low can be used for quick iterations.
+           Usually the prefered why is to use the textureTool cmd line parameter "-quality low" instead of adjusting the gim
+<signedDistanceWidth>: float, default=4.0 for *_alpha, 0 otherwise
+                       If bigger than 0, the alpha channel is replaced with a distance field based on the the source image data (assumed to be an antialiasing binary image).
+                       The range over with the distance field values fall of is defined by signedDistanceWidth as the number of pixels in the source resolution.
+                       E.g. a width of 4 will result in pixels being 0 or 255 when they are more than 4 pixels away from edges. Pixels on the edge, will have a value of 127.5
+<downScaleFactor>: float, default=2.0 for *_alpha, 1.0 otherwise
+                   Downscale image. Non-power-of-two factors are allowed if <numMipmaps> is set to zero.
+                   The output resolution will be inputResolution/downScaleFactor
+                   This option is mostly useful in combination with signed distance textures. The quality of the signed distance texture is better, the higher the input resolution.
+                   Therefore it can make sense to use factor of 2 or more to allow a higher quality distance texture.
+                   Thus this option is also set to 2 by default for *_alpha textures.
+                   In most other cases it is better to manually downscale the images before converting, since other image editing software usually offer better downscaling options.
+<mipmapAlphaBoost>: bool, default=true for *_alpha, 0 otherwise.
+                    Enables alpha scaling values in mipmaps to equalize alpha test coverage.
+                    Enabled by default for _alpha.* textures.
+<mipmapAlphaBoostThresholds>: list of float, default=0.5
+                    A list of coverage values used to guide the alpha scaling procedure.
+                    Values are between 0.0 and 1.0
+                    Default value is 0.5
+                    Only used if mipmapAlphaBoost is true
+<roughnessChannel>: enum=[none, r, g, b], default=r for *_specular (if normal maps are available), none otherwise
+                    Roughness correction adjust the specified smoothness channel (1-roughness) to avoid that materials look too smooth from a distance due to the loss of normal map details in lower mipmaps.
+                    Generally, the bumpier the normal map, the rougher the material will be set in lower mip maps.
+                    none: roughness correction is disabled
+                    r, g, b: roughness correction is enabled with specified roughness channel
+                    Normal maps must be present for the feature to work (either corresponding texture ending with _normal, or specified with normalMapImages)
+                    The feature is enabled by default for _specular.* images when normal maps are available
+<normalMapImages>: List of <image name=""> nodes, default=Same list as images with _normal postfix
+                   Normal map images used for roughness correction
+<normalMapFormat>: enum=[rg, rgb], default=rgb
+                   Format of the normal map data contained in this image (if it needs to be interpreted as a normal map, e.g. for normalization or for roughness correction)
+                   rg:  2 channel tangent-space normal map. XY components stored in red and green channels (data is assumed to be normalized already)
+                   rgb: 3 channel tangent-space normal map. XYZ components stored in red, green and blue channels
+<normalizeImage>: bool, default=true for *_normal, false otherwise
+                  Interpret image as vector image and normalize vectors for the top mip level.
+<normalizeMipmaps>: bool, default=true for *_normal, false otherwise
+                    Interpret image as vector image and normalize vectors for the mipmaps.
+
+-->

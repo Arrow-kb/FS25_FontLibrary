@@ -1,0 +1,5 @@
+Use case: create a corresponding gim for every png in a directory
+
+1. adjust template.gim to desired settings
+2. run createGims.cmd
+3. enter directory where png files are located

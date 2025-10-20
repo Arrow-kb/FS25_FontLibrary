@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<textureTool>
+    <settings>
+        <source_path_filter>.cmd;.bat;.ma;.mb;.fbx;.ods;.obj;.avi;.3ds;.max;.dae;.log;.psd;.ai;.mel;.mayaSwatches;.shell_history;.svn;.ilk;.ipdb;.iobj;.pch;.suo;.idb;.map;.exp;.lib;.bak;.DS_Store;.sbs;Substance;Houdini;giantsTools;.vs;.csv;.py</source_path_filter>
+    </settings>
+    <defaultOptions>
+    </defaultOptions>
+</textureTool>

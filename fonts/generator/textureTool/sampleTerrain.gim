@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<metadata>
+    <normalMapFormat>rg</normalMapFormat>
+    <roughnessChannel>b</roughnessChannel>
+	<normalizeImage>false</normalizeImage>
+	<normalizeMipmaps>true</normalizeMipmaps>
+</metadata>
