@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<GUI onOpen="onOpen" onClose="onClose" onCreate="onCreate">
+	<GuiElement profile="newLayer"/>
+	<Bitmap profile="dialogFullscreenBg" id="dialogBg"/>
+	<GuiElement profile="fs25_dialogBg" id="dialogElement" width="740px" height="740px">
+		<ThreePartBitmap profile="fs25_dialogBgMiddleSmall"/>
+		<ThreePartBitmap profile="fs25_dialogBgTopSmall"/>
+		<ThreePartBitmap profile="fs25_dialogBgBottom"/>
+
+		<GuiElement profile="fl_fontViewerDialogContainer">
+
+			<MultiTextOption profile="fl_multiTextOption" onClick="onChangeFont" id="fontPicker" position="-100px 0px" width="50%"/>
+			<MultiTextOption profile="fl_multiTextOption" onClick="onChangeFontSize" id="sizePicker" position="200px 0px" width="150px"/>
+
+			<ScrollingLayout profile="fl_scrollingLayout" id="scrollingLayout">
+				
+				<Text profile="fl_exampleText" id="exampleTexts[1]" text="$l10n_fl_example_regular"/>
+				<Text profile="fl_exampleText" id="exampleTexts[2]" text="$l10n_fl_example_bold" textBold="true"/>
+				<Text profile="fl_exampleText" id="exampleTexts[3]" text="$l10n_fl_example_italic" textItalic="true"/>
+				<Text profile="fl_exampleText" id="exampleTexts[4]" text="$l10n_fl_example_boldItalic" textBold="true" textItalic="true"/>
+				
+			</ScrollingLayout>
+
+			<ThreePartBitmap profile="fs25_listSliderBox" position="5px 0px" absoluteSizeOffset="0px 5px" pivot="1 1">
+				<Slider profile="fs25_listSlider" dataElementId="scrollingLayout" id="slider"/>
+			</ThreePartBitmap>
+
+		</GuiElement>
+
+		<BoxLayout profile="fs25_dialogButtonBox" id="buttonsPC">
+			<Button profile="buttonBack" text="Close" onClick="onClickBack"/>
+		</BoxLayout>
+		
+	</GuiElement>
+
+	<GUIProfiles>
+		
+		<Profile name="fl_fontViewerDialogContainer" extends="emptyPanel" with="anchorStretchingYStretchingX pivotTopLeft">
+			<absoluteSizeOffset value="100px 100px"/>
+			<position value="4px -4px"/>
+		</Profile>
+		
+		<Profile name="fl_multiTextOption" extends="fs25_dialogMultiTextOption" with="anchorTopCenter">
+			<position value="0px -20px"/>
+		</Profile>
+		
+		<Profile name="fl_exampleText" extends="fs25_textDefault" with="anchorTopCenter">
+			<height value="80px"/>
+		</Profile>
+
+		<Profile name="fl_scrollingLayout" extends="emptyPanel" with="anchorStretchingYCenter">
+			<flowDirection value="vertical"/>
+			<autoValidateLayout value="true"/>
+			<position value="0px -100px"/>
+			<absoluteSizeOffset value="100px 100px"/>
+		</Profile>
+		
+	</GUIProfiles>
+</GUI>

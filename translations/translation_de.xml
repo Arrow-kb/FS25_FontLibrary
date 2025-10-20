@@ -1,0 +1,17 @@
+<l10n>
+	<texts>
+		<text name="fl_example_regular" text="Dies ist normaler Text!"/>
+		<text name="fl_example_bold" text="Dies ist fettgedruckter Text!"/>
+		<text name="fl_example_italic" text="Dies ist kursiver Text!"/>
+		<text name="fl_example_boldItalic" text="Dies ist fettgedruckter und kursiver Text!"/>
+
+		<text name="fl_settings" text="Schriftartenbibliothek"/>
+
+		<text name="fl_settings_font_label" text="Schriftart ändern"/>
+		<text name="fl_settings_font_tooltip" text="Der schnelle braune Fuchs springt über den faulen Hund. 1234567890"/>
+
+		<text name="fl_settings_viewFonts_label" text="Schriftarten anzeigen"/>
+		<text name="fl_settings_viewFonts_tooltip" text="Varianten der installierten Schriftarten anzeigen"/>
+		<text name="fl_settings_viewFonts_text" text="Varianten der installierten Schriftarten anzeigen"/>
+	</texts>
+</l10n>

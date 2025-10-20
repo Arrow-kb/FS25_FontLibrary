@@ -1,0 +1,17 @@
+<l10n>
+	<texts>
+		<text name="fl_example_regular" text="Ceci est un texte normal !"/>
+		<text name="fl_example_bold" text="Ceci est du texte en gras !"/>
+		<text name="fl_example_italic" text="Ceci est du texte en italique !"/>
+		<text name="fl_example_boldItalic" text="Ceci est un texte en gras et en italique !"/>
+
+		<text name="fl_settings" text="Bibliothèque De Polices"/>
+
+		<text name="fl_settings_font_label" text="Changer la police"/>
+		<text name="fl_settings_font_tooltip" text="Le renard brun rapide saute par-dessus le chien paresseux. 1234567890"/>
+
+		<text name="fl_settings_viewFonts_label" text="Afficher les polices"/>
+		<text name="fl_settings_viewFonts_tooltip" text="Afficher les variantes des polices installées"/>
+		<text name="fl_settings_viewFonts_text" text="Afficher les variantes des polices installées"/>
+	</texts>
+</l10n>

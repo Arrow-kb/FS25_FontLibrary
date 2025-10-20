@@ -1,0 +1,25 @@
+Font Creation
+
+1. Copy the folder "fonts/generator/" into your mod
+2. Drag and drop a regular-variation TTF/OTF font onto the file "generator/font_generator.py"
+3. Input the name of the font and wait until completion
+4. add font into game using lua.lua documentation
+
+The python script will automatically select the best font size and convert the font into 4 variations across 8 files (1x2D, 1x3D)
+Current variations:
+- Regular
+- Bold
+- Italic
+- Bold & Italic
+
+Planned variations:
+- Underlined
+- Strikethrough
+
+The font can then be implemented through:
+1) GUI Profiles/XML:
+	- textItalic="true"
+	- textFont="arial"
+2) LUA:
+	- setTextItalic(true)
+	- setTextFont("arial")

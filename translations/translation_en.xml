@@ -1,0 +1,17 @@
+<l10n>
+	<texts>
+		<text name="fl_example_regular" text="This is regular text!"/>
+		<text name="fl_example_bold" text="This is bold text!"/>
+		<text name="fl_example_italic" text="This is italic text!"/>
+		<text name="fl_example_boldItalic" text="This is bold and italic text!"/>
+		
+		<text name="fl_settings" text="Font Library"/>
+		
+		<text name="fl_settings_font_label" text="Change Font"/>
+		<text name="fl_settings_font_tooltip" text="The quick brown fox jumps over the lazy dog. 1234567890"/>
+
+		<text name="fl_settings_viewFonts_label" text="View Fonts"/>
+		<text name="fl_settings_viewFonts_tooltip" text="View variations of installed fonts"/>
+		<text name="fl_settings_viewFonts_text" text="View variations of installed fonts"/>
+	</texts>
+</l10n>
