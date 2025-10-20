@@ -4,6 +4,12 @@ This mod is a framework for other mods to easily render text with custom fonts a
 
 For normal users, there is a setting to change the default UI font of the game.
 
+# Planned
+- Strikethrough text
+- Underlined text
+- More fonts
+- Integration into RealisticLivestock
+
 # Screenshots
 <img width="3840" height="2160" alt="fsScreen_2025_10_20_17_54_10" src="https://github.com/user-attachments/assets/0b0f5772-d471-4006-9c2d-d0d22dc42774" />
 <img width="3840" height="2160" alt="fsScreen_2025_10_20_17_55_32" src="https://github.com/user-attachments/assets/bdcc78c9-045c-4ad0-8b6f-a8f6ad534101" />
