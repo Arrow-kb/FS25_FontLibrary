@@ -4,6 +4,9 @@ This mod is a framework for other mods to easily render text with custom fonts a
 
 For normal users, there is a setting to change the default UI font of the game.
 
+Currently contains 11 fonts.
+Includes an easy to use python tool that automatically converts TTF and OTF fonts into game-ready DDS files with the required mipmaps and mod data.
+
 # Planned
 - Strikethrough text
 - Underlined text
