@@ -80,7 +80,7 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
 
             left, top, right, bottom = font.getbbox(char)
 
-            char_width = (right - left) + strokeWidth * 2
+            char_width = (right - left)
             char_height = bottom - top
 
             
@@ -126,7 +126,7 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
                 
 
             # 4px padding to char_width to prevent hooked characters appearing under adjacent characters
-            current_x += fixedWidth and CELL_WIDTH or (char_width + 8)
+            current_x += fixedWidth and CELL_WIDTH or (char_width + strokeWidth * 2 + 8)
 
             
         image.save(filename + '.png', 'PNG')
@@ -164,10 +164,37 @@ if len(sys.argv) == 0 or not os.path.isfile(sys.argv[1]):
 font_path = sys.argv[1]
 print("Font ID does not have to be unique; FontLibrary will make it unique and return the unique id")
 font_name = input("Enter the id of the font (eg: GENERIC):")
+font_language = input("Enter the language of the font (latin, cyrillic):")
 
 trueTypeFont = TTFont(font_path)
 cmap = trueTypeFont.getBestCmap()
-text = "0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ,.:;!?%&#+£$€\"\'%^*-_=`()[]{}@~<>|\\/abcdefghijklmnopqrstuvwxyzÁÃÂÄÀÇÉÈÊËÎÏÌÔÖÒÙÛÜàâãäçéèêëîïíñôóöõûüú"
+
+text = ""
+
+charBytes = {
+    "latin": [
+        { "start": 33, "end": 126 },
+        { "start": 161, "end": 161 },
+        { "start": 163, "end": 163 },
+        { "start": 176, "end": 180 },
+        { "start": 191, "end": 214 },
+        { "start": 217, "end": 221 },
+        { "start": 223, "end": 253 },
+        { "start": 255, "end": 259 }
+    ],
+    "cyrillic": [
+        { "start": 1024, "end": 1118 }
+    ]
+}
+
+if not font_language in charBytes:
+    input("Invalid language")
+    sys.exit()
+
+for byteRange in charBytes[font_language]:
+    for byte in range(byteRange["start"], byteRange["end"] + 1):
+        text += chr(byte)
+
 charsToRemove = ""
 
 for char in text:
@@ -223,6 +250,7 @@ root = ET.Element("font")
 
 root.set("name", font_name)
 root.set("width", "64")
+root.set("language", font_language)
 
 i = 0
 for char in text:

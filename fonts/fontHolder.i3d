@@ -8,7 +8,7 @@
   <Files>
     <File fileId="2" filename="$data/shared/alphabet/font_specular.png"/>
     <File fileId="3" filename="alphabetShader.xml"/>
-    <File fileId="4" filename="arial/arial_alpha.dds"/>
+    <File fileId="4" filename="nunito_sans/nunito_sans_alpha.dds"/>
   </Files>
 
 
