@@ -4,6 +4,8 @@
 		<text name="fl_example_bold" text="Ceci est du texte en gras !"/>
 		<text name="fl_example_italic" text="Ceci est du texte en italique !"/>
 		<text name="fl_example_boldItalic" text="Ceci est un texte en gras et en italique !"/>
+		<text name="fl_example_underlined" text="Ceci est du texte souligné !"/>
+		<text name="fl_example_strikethrough" text="Ceci est du texte barré !"/>
 
 		<text name="fl_settings" text="Bibliothèque De Polices"/>
 

@@ -46,6 +46,7 @@ function FontCharacter:loadVariation(xmlFile, key, imageWidth, imageHeight)
 	variation.y = xmlFile:getInt(key .. "#y")
 
 	variation.screenWidth, variation.screenHeight = getNormalizedScreenValues(variation.width, variation.height)
+	variation.imageWidth, variation.imageHeight = imageWidth, imageHeight
 
 	variation.uvs = GuiUtils.getUVs({ variation.x, variation.y, variation.width, variation.height }, { imageWidth, imageHeight })
 
@@ -57,5 +58,25 @@ end
 function FontCharacter:getVariation(variation)
 
 	return self.variations[variation]
+
+end
+
+
+function FontCharacter:getClippedUVs(variationName, leftX, rightX, bottomY, topY, minX, minY, maxX, maxY)
+
+	local variation = self.variations[variationName]
+	local x, y, width, height = variation.x, variation.y, variation.width, variation.height
+
+	if leftX > maxX or rightX < minX or bottomY > maxY or topY < minY then return false, nil, nil, nil end
+
+	if leftX < minX then x = width * ((minX - math.abs(leftX)) / (rightX - leftX)) end
+	if rightX > maxX then width = width - width * ((rightX - maxX) / (rightX - leftX)) end
+
+	if bottomY < minY then y = height * ((minY - math.abs(bottomY)) / (topY - bottomY)) end
+	if topY > maxY then height = height - height * ((topY - maxY) / (topY - bottomY)) end
+
+	local screenWidth, screenHeight = getNormalizedScreenValues(width, height)
+
+	return true, screenWidth, screenHeight, GuiUtils.getUVs({ x, y, width, height }, { variation.imageWidth, variation.imageHeight })
 
 end

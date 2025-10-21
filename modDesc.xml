@@ -1,6 +1,6 @@
-<modDesc descVersion="99">
+<modDesc descVersion="103">
     <author>Arrow</author>
-    <version>1.0.0.0</version>
+    <version>0.9.1.0</version>
     <title>
         <en>Font Library</en>
         <de>Schriftartenbibliothek</de>
@@ -10,23 +10,52 @@
         <en>
         <![CDATA[ This mod is a framework for other mods to easily render text with custom fonts and styles, both in  2D and 3D, and adds italic text.
 
-For normal users, there is a setting to change the default UI font of the game. ]]>
+For normal users, there is a setting to change the default UI font of the game.
+
+Changelog:
+
+0.9.1.0
+- Added strikethrough text
+- Added underlined text
+- Added text clip area
+- Added text lines
+- Fixed key buttons displaying incorrectly
+- More prevention of dots under the letter 'i' ]]>
         </en>
         <de>
         <![CDATA[ Dieser Mod ist ein Framework für andere Mods, mit dem Text sowohl in 2D als auch in 3D einfach mit benutzerdefinierten Schriftarten und Stilen gerendert werden kann, und fügt kursiven Text hinzu.
 
-Für normale Benutzer gibt es eine Einstellung, mit der die Standard-UI-Schriftart des Spiels geändert werden kann. ]]>
+Für normale Benutzer gibt es eine Einstellung, mit der die Standard-UI-Schriftart des Spiels geändert werden kann.
+
+Changelog:
+
+0.9.1.0
+- Added strikethrough text
+- Added underlined text
+- Added text clip area
+- Added text lines
+- Fixed key buttons displaying incorrectly
+- More prevention of dots under the letter 'i' ]]>
         </de>
         <fr>
         <![CDATA[ Ce mod est un framework permettant à d'autres mods d'afficher facilement du texte avec des polices et des styles personnalisés, en  2D et en 3D, et ajoute du texte en italique.
 
-Pour les utilisateurs normaux, il existe un paramètre permettant de modifier la police par défaut de l'interface utilisateur du jeu. ]]>
+Pour les utilisateurs normaux, il existe un paramètre permettant de modifier la police par défaut de l'interface utilisateur du jeu.
+
+Changelog:
+
+0.9.1.0
+- Added strikethrough text
+- Added underlined text
+- Added text clip area
+- Added text lines
+- Fixed key buttons displaying incorrectly
+- More prevention of dots under the letter 'i' ]]>
         </fr>
     </description>
     <iconFilename>icon_FontLibrary.dds</iconFilename>
     <multiplayer supported="true"/>
     <extraSourceFiles>
-        <sourceFile filename="src/gui/elements/TextElement.lua"/>
         <sourceFile filename="src/gui/InGameMenuSettingsFrame.lua"/>
         <sourceFile filename="src/Medium.lua"/>
 		<sourceFile filename="src/FLSettings.lua"/>

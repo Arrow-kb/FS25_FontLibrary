@@ -18,6 +18,8 @@
 				<Text profile="fl_exampleText" id="exampleTexts[2]" text="$l10n_fl_example_bold" textBold="true"/>
 				<Text profile="fl_exampleText" id="exampleTexts[3]" text="$l10n_fl_example_italic" textItalic="true"/>
 				<Text profile="fl_exampleText" id="exampleTexts[4]" text="$l10n_fl_example_boldItalic" textBold="true" textItalic="true"/>
+				<Text profile="fl_exampleText" id="exampleTexts[5]" text="$l10n_fl_example_underlined" textUnderlined="true"/>
+				<Text profile="fl_exampleText" id="exampleTexts[6]" text="$l10n_fl_example_strikethrough" textStrikethrough="true"/>
 				
 			</ScrollingLayout>
 

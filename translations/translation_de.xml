@@ -4,6 +4,8 @@
 		<text name="fl_example_bold" text="Dies ist fettgedruckter Text!"/>
 		<text name="fl_example_italic" text="Dies ist kursiver Text!"/>
 		<text name="fl_example_boldItalic" text="Dies ist fettgedruckter und kursiver Text!"/>
+		<text name="fl_example_underlined" text="Dies ist unterstrichener Text!"/>
+		<text name="fl_example_strikethrough" text="Dies ist durchgestrichener Text!"/>
 
 		<text name="fl_settings" text="Schriftartenbibliothek"/>
 

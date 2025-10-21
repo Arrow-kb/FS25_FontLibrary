@@ -4,6 +4,8 @@
 		<text name="fl_example_bold" text="This is bold text!"/>
 		<text name="fl_example_italic" text="This is italic text!"/>
 		<text name="fl_example_boldItalic" text="This is bold and italic text!"/>
+		<text name="fl_example_underlined" text="This is underlined text!"/>
+		<text name="fl_example_strikethrough" text="This is strikethrough text!"/>
 		
 		<text name="fl_settings" text="Font Library"/>
 		

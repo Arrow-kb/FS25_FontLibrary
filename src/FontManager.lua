@@ -1,4 +1,4 @@
-FontManager = {}
+﻿FontManager = {}
 
 
 local FontManager_mt = Class(FontManager)
@@ -45,7 +45,9 @@ local closestCharacters = {
 	[246] = 111,
 	[250] = 117,
 	[251] = 117,
-	[252] = 117
+	[252] = 117,
+	[8612] = 8592, -- Left Arrow with Bar -> Left Arrow
+	[9166] = 8596 -- Left Arrow with Bar -> Left-Right Arrow
 }
 
 
@@ -54,19 +56,34 @@ function FontManager.new()
 	local self = setmetatable({}, FontManager_mt)
 
 	self.fonts = {}
-	self.defaultFont = "arial"
+	self.defaultFont = "nunito_sans"
 	self.missingFonts = {}
 	self.cache2D = {}
 	self.cache3D = {}
 	self.cachedOverlays = {}
+	self.cachedLineOverlays = {}
 
 	self.args = {
 		["colour"] = { 1, 1, 1, 1 },
 		["bold"] = false,
+		["italic"] = false,
+		["underline"] = false,
+		["strikethrough"] = false,
+		["useEngineRenderer"] = false,
 		["alignX"] = RenderText.ALIGN_LEFT,
 		["alignY"] = RenderText.VERTICAL_ALIGN_MIDDLE,
-		["font"] = self.defaultFont
+		["font"] = self.defaultFont,
+		["clip"] = { 0, 0, 1, 1 },
+		["lines"] = {
+			["indentation"] = 0,
+			["width"] = 0,
+			["startLine"] = 0,
+			["numLines"] = 0,
+			["heightScale"] = RenderText.DEFAULT_LINE_HEIGHT_SCALE
+		}
 	}
+
+	_, self.yOffset = getNormalizedScreenValues(0, 4)
 
 	self:replaceEngineFunctions()
 	self:loadFonts()
@@ -111,6 +128,14 @@ function FontManager:replaceEngineFunctions()
 
 			if cache.delete then
 				for _, overlay in pairs(cache.overlays) do table.insert(self.cachedOverlays, overlay) end
+
+				for _, line in pairs(cache.lines) do
+
+					if line.underline ~= nil then table.insert(self.cachedLineOverlays, line.underline) end
+					if line.strikethrough ~= nil then table.insert(self.cachedLineOverlays, line.strikethrough) end
+
+				end
+
 				table.remove(self.cache2D, i)
 			end
 
@@ -178,6 +203,49 @@ function FontManager:replaceEngineFunctions()
 
 		self.args.alignY = value
 		engine.setTextVerticalAlignment(value)
+
+	end
+
+
+	setTextClipArea = function(x1, y1, x2, y2)
+
+		self.args.clip = { x1, y1, x2, y2 }
+
+	end
+
+
+	setTextFirstLineIndentation = function(indentation)
+
+		self.args.lines.indentation = indentation or 0
+
+	end
+
+
+	setTextWrapWidth = function(width)
+
+		self.args.lines.width = width or 0
+
+	end
+
+
+	setTextLineBounds = function(startLine, numLines)
+
+		self.args.lines.startLine = startLine
+		self.args.lines.numLines = numLines
+
+	end
+
+
+	setTextLineHeightScale = function(heightScale)
+
+		self.args.lines.heightScale = heightScale or 0
+
+	end
+
+
+	setTextUseEngineRenderer = function(useEngineRenderer)
+
+		self.args.useEngineRenderer = useEngineRenderer
 
 	end
 
@@ -272,6 +340,13 @@ function FontManager:replaceEngineFunctions()
 	local isLoading = g_gameStateManager:getGameState() == GameState.LOADING
 
 	renderText = function(x, y, size, text, fontName)
+	
+		local args = self.args
+
+		if args.useEngineRenderer then
+			engine.renderText(x, y, size, text)
+			return
+		end
 
 		if isLoading then
 
@@ -294,7 +369,6 @@ function FontManager:replaceEngineFunctions()
 
 		end
 
-		local args = self.args
 		local variationName = "regular"
 
 		if args.bold and args.italic then
@@ -304,14 +378,15 @@ function FontManager:replaceEngineFunctions()
 		elseif args.italic then
 			variationName = "italic"
 		end
-	
-		local overlays
+
+		local lineConfig = args.lines
+		local cachedRender
 
 		for _, cache in pairs(self.cache2D) do
 
 			if cache.x == x and cache.y == y and cache.size == size and cache.text == text and cache.fontName == fontName then
 				cache.delete = false
-				overlays = cache.overlays
+				cachedRender = cache
 				break
 			end
 
@@ -319,14 +394,14 @@ function FontManager:replaceEngineFunctions()
 		
 		local args = self.args
 		local scale = size * 10
+		local cx1, cy1, cx2, cy2 = unpack(args.clip)
 
-		if overlays == nil then
+		if cachedRender == nil then
 
-			overlays = {}
-
+			local overlays = {}
 			local font = self.fonts[fontName]
 			local width, height = size, size
-			local xOffset = 0
+			local lines = { { ["text"] = "", ["width"] = 0, ["x"] = x } }
 
 			if args.alignY == RenderText.VERTICAL_ALIGN_BASELINE then
 				-- ?
@@ -338,10 +413,19 @@ function FontManager:replaceEngineFunctions()
 				y = y - size
 			end
 
-			local sizePixels = size * g_referenceScreenWidth * g_aspectScaleX
 
+			local function writeCharacter(character, variation, posX, posY)
 
-			local function writeCharacter(character, variation, posX)
+				local isRendered, overlayWidth, overlayHeight = true, variation.screenWidth * scale, variation.screenHeight * scale
+				local uvs
+
+				if (cx1 == 0 and cy1 == 0 and cx2 == 1 and cy2 == 1) or (posX >= cx1 and posX + overlayWidth <= cx2 and posY >= cy1 and posY + overlayHeight <= cy2) then
+					uvs = variation.uvs
+				else
+					isRendered, overlayWidth, overlayHeight, uvs = character:getClippedUVs(variationName, posX, posX + overlayWidth, posY, posY + overlayHeight, cx1, cy1, cx2, cy2)
+					if not isRendered then return end
+					overlayWidth, overlayHeight = overlayWidth * scale, overlayHeight * scale
+				end
 
 				local overlay
 
@@ -353,78 +437,220 @@ function FontManager:replaceEngineFunctions()
 				end
 			
 				overlay:setImage(font.variations[variationName])
-				overlay:setDimension(variation.screenWidth * scale, variation.screenHeight * scale)
-				overlay:setPosition(posX, y)
-				overlay:setUVs(variation.uvs)
+				overlay:setDimension(overlayWidth, overlayHeight)
+				overlay:setPosition(posX, posY)
+				overlay:setUVs(uvs)
 
 				table.insert(overlays, overlay)
 
 			end
-		
-			if args.alignX ~= RenderText.ALIGN_LEFT then
 
-				local textWidth = 0
+			local textWidth = 0
+			local words = string.split(text, " ")
+			local line = lines[1]
+
+			for j, word in pairs(words) do
+
+				local wordWidth = 0
+
+				for i = 1, #word do
+
+					local character = self:getCharacter(font, string.sub(word, i, i))
+
+					if character == nil then
+						wordWidth = wordWidth + size * 0.25
+						continue
+					end
+
+					local variation = character:getVariation(variationName)
+					wordWidth = wordWidth + variation.screenWidth * scale
+
+				end
+
+				if lineConfig.width ~= 0 and line.width + wordWidth > lineConfig.width then
+					table.insert(lines, { ["text"] = "", ["width"] = 0, ["x"] = x })
+					line = lines[#lines]
+				end
+
+				line.text = line.text .. word
+				line.width = line.width + wordWidth
+
+				if j ~= #words then
+					line.text = line.text .. " "
+					line.width = line.width + size * 0.25
+				end
+
+			end
+
+			for j, line in pairs(lines) do
+
+				if args.alignX == RenderText.ALIGN_CENTER then
+					line.x = line.x - line.width / 2
+				elseif args.alignX == RenderText.ALIGN_RIGHT then
+					line.x = line.x - line.width
+				end
+
+				local text, xOffset, yOffset = line.text, 0, (j - 1) * size
 
 				for i = 1, #text do
 
 					local character = self:getCharacter(font, string.sub(text, i, i))
 
 					if character == nil then
-						textWidth = textWidth + size * 0.25
+						xOffset = xOffset + size * 0.25
 						continue
 					end
 
 					local variation = character:getVariation(variationName)
-					textWidth = textWidth + variation.screenWidth * scale
+					writeCharacter(character, variation, line.x + xOffset, (y - yOffset) - self.yOffset)
+					xOffset = xOffset + variation.screenWidth * scale
 
-				end
-
-				if args.alignX == RenderText.ALIGN_CENTER then
-					x = x - textWidth / 2
-				elseif args.alignX == RenderText.ALIGN_RIGHT then
-					x = x - textWidth
 				end
 
 			end
 
-			for i = 1, #text do
 
-				local character = self:getCharacter(font, string.sub(text, i, i))
-
-				if character == nil then
-					xOffset = xOffset + size * 0.25
-					continue
-				end
-
-				local variation = character:getVariation(variationName)
-				writeCharacter(character, variation, x + xOffset)
-				xOffset = xOffset + variation.screenWidth * scale
-
-			end
-
-
-			table.insert(self.cache2D, {
+			cachedRender = {
 				["delete"] = false,
 				["overlays"] = overlays,
 				["x"] = x,
 				["y"] = y,
 				["size"] = size,
 				["text"] = text,
-				["fontName"] = fontName
-			})
+				["fontName"] = fontName,
+				["width"] = textWidth,
+				["lines"] = {}
+			}
+
+			for i, line in pairs(lines) do
+
+				table.insert(cachedRender.lines, {
+					["width"] = line.width,
+					["x"] = line.x,
+					["y"] = y - (i - 1) * size
+				})
+
+			end
+
+			table.insert(self.cache2D, cachedRender)
 
 		end
 
-		if overlays == nil then return end
+		if cachedRender == nil then return end
 
 		local colour = args.colour
 
-		for _, overlay in pairs(overlays) do
+		for _, overlay in pairs(cachedRender.overlays) do
 			overlay:setColor(colour[1], colour[2], colour[3], colour[4])
 			overlay:render()
 		end
 
+		if args.underline or args.strikethrough then
+
+			for _, line in pairs(cachedRender.lines) do
+
+				if args.underline then
+
+					local overlay = line.underline
+
+					if overlay == nil then
+
+						local isRendered, screenWidth, screenHeight = true, line.width, size * 0.075
+						isRendered, overlay, screenWidth, screenHeight = self:getLineOverlay(line.x, screenWidth, line.y, screenHeight, cx1, cy1, cx2, cy2)
+
+						if isRendered then
+
+							overlay:setDimension(screenWidth, screenHeight)
+							overlay:setPosition(line.x, line.y - size * 0.05)
+							line.underline = overlay
+
+						end
+
+					end
+
+					if overlay ~= nil then
+						overlay:setColor(colour[1], colour[2], colour[3], colour[4])
+						overlay:render()
+
+					end
+
+				end
+
+				if args.strikethrough then
+
+					local overlay = line.strikethrough
+
+					if overlay == nil then
+
+						local isRendered, screenWidth, screenHeight = true, line.width, size * 0.075
+						isRendered, overlay, screenWidth, screenHeight = self:getLineOverlay(line.x, screenWidth, line.y, screenHeight, cx1, cy1, cx2, cy2)
+
+						if isRendered then
+
+							overlay:setDimension(screenWidth, screenHeight)
+							overlay:setPosition(line.x, line.y + size * 0.5 - self.yOffset)
+							line.strikethrough = overlay
+
+						end
+
+					end
+
+					if overlay ~= nil then
+
+						overlay:setColor(colour[1], colour[2], colour[3], colour[4])
+						overlay:render()
+
+					end
+
+				end
+
+			end
+
+		end
+
 	end
+
+end
+
+
+function FontManager:getLineOverlay(leftX, screenWidth, bottomY, screenHeight, minX, minY, maxX, maxY)
+
+	local uvs
+	local rightX, topY = leftX + screenWidth, bottomY + screenHeight
+
+	if (minX == 0 and minY == 0 and maxX == 1 and maxY == 1) or (leftX >= minX and rightX <= maxX and bottomY >= minY and topY <= maxY) then
+		uvs = GuiUtils.getUVs({ 0, 0, 3, 3 }, { 4, 4 })
+	else
+
+		if leftX > maxX or rightX < minX or bottomY > maxY or topY < minY then return false, nil, nil, nil end
+
+		local x, y, width, height = 0, 0, 3, 3
+
+		if leftX < minX then x = width * ((minX - math.abs(leftX)) / (rightX - leftX)) end
+		if rightX > maxX then width = width - width * ((rightX - maxX) / (rightX - leftX)) end
+
+		if bottomY < minY then y = height * ((minY - math.abs(bottomY)) / (topY - bottomY)) end
+		if topY > maxY then height = height - height * ((topY - maxY) / (topY - bottomY)) - y end
+
+		uvs = GuiUtils.getUVs({ x, y, width, height }, { 4, 4 })
+
+		screenWidth, screenHeight = screenWidth * (width / 3), screenHeight * (height / 3) 
+
+	end
+	
+
+	local overlay
+
+	if #self.cachedLineOverlays > 0 then
+		overlay = self.cachedLineOverlays[1]
+		table.remove(self.cachedLineOverlays, 1)
+	else
+		overlay = Overlay.new()
+		overlay:setImage("dataS/menu/base/graph_pixel.png")
+	end
+
+	overlay:setUVs(uvs)
+	return true, overlay, screenWidth, screenHeight
 
 end
 
