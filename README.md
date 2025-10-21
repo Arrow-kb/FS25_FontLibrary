@@ -7,11 +7,7 @@ For normal users, there is a setting to change the default UI font of the game.
 Currently contains 11 fonts.
 Includes an easy to use python tool that automatically converts TTF and OTF fonts into game-ready DDS files with the required mipmaps and mod data.
 
-# Planned
-- Strikethrough text
-- Underlined text
-- More fonts
-- Integration into RealisticLivestock
+Latin Pack: https://github.com/Arrow-kb/FS25_FontLibrary_LatinPack
 
 # Screenshots
 <img width="3840" height="2160" alt="fsScreen_2025_10_20_17_54_10" src="https://github.com/user-attachments/assets/0b0f5772-d471-4006-9c2d-d0d22dc42774" />
