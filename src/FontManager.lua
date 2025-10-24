@@ -45,9 +45,7 @@ local closestCharacters = {
 	[246] = 111,
 	[250] = 117,
 	[251] = 117,
-	[252] = 117,
-	[8612] = 8592, -- Left Arrow with Bar -> Left Arrow
-	[9166] = 8596 -- Left Arrow with Bar -> Left-Right Arrow
+	[252] = 117
 }
 
 
@@ -60,6 +58,7 @@ function FontManager.new()
 	self.missingFonts = {}
 	self.cache2D = {}
 	self.cache3D = {}
+	self.cache3DLinked = {}
 	self.cachedOverlays = {}
 	self.cachedLineOverlays = {}
 
@@ -83,7 +82,13 @@ function FontManager.new()
 		}
 	}
 
-	_, self.yOffset = getNormalizedScreenValues(0, 4)
+	local _, yOffsetBaseline = getNormalizedScreenValues(0, 8)
+	local _, yOffsetMiddle = getNormalizedScreenValues(0, 64)
+
+	self.yOffset = {
+		["baseline"] = yOffsetBaseline,
+		["middle"] = yOffsetMiddle
+	}
 
 	self:replaceEngineFunctions()
 	self:loadFonts()
@@ -337,6 +342,95 @@ function FontManager:replaceEngineFunctions()
 
 	end
 
+
+	create3DLinkedText = function(parent, x, y, z, rx, ry, rz, size, text, fontName)
+
+		fontName = fontName or self.defaultFont
+
+		if self.fonts[fontName] == nil then
+			
+			if self.missingFonts[fontName] == nil then
+				self.missingFonts[fontName] = true
+				Logging.error(string.format("FontLibrary - requested font \'%s\' not found (create3DLinkedText)", fontName))
+				printCallstack()
+			end
+
+			fontName = self.defaultFont
+
+		end
+
+
+		local args = self.args
+		local variationName = "regular"
+
+		if args.bold and args.italic then
+			variationName = "boldItalic"
+		elseif args.bold then
+			variationName = "bold"
+		elseif args.italic then
+			variationName = "italic"
+		end
+
+		local node = clone(self.text, false, false, false)
+		link(parent, node)
+		setVisibility(node, true)
+
+		setTranslation(node, x + 0.25 * size, y, z)
+		setRotation(node, rx, ry + math.pi / 2, rz)
+
+		local font = self.fonts[fontName]
+		local variationNode = font.nodes[variationName]
+		local xOffset, yOffset = 0, 0
+
+		local colour = args.colour
+		setScale(node, size, size, 0)
+
+		for i = 1, #text do
+
+			local character = self:getCharacter(font, string.sub(text, i, i))
+
+			if character == nil then
+				xOffset = xOffset + 0.5
+				continue
+			end
+
+			local charNode = clone(variationNode, false, false, false)
+			link(node, charNode)
+
+			setShaderParameter(charNode, "index", character.index, nil, nil, nil, false)
+			setShaderParameter(charNode, "colorScale", colour[1], colour[2], colour[3], colour[4], false)
+
+			setTranslation(charNode, xOffset, 0, 0)
+			xOffset = xOffset + character:getVariation(variationName).width / 128
+
+		end
+
+		self.cache3DLinked[node] = {
+			["x"] = x,
+			["y"] = y,
+			["z"] = z,
+			["rx"] = rx,
+			["ry"] = ry,
+			["rz"] = rz,
+			["size"] = size,
+			["text"] = text,
+			["fontName"] = fontName
+		}
+
+		return node
+
+	end
+
+
+	function delete3DLinkedText(node)
+
+		if self.cache3DLinked[node] ~= nil then delete(node) end
+
+		self.cache3DLinked[node] = nil
+
+	end
+
+
 	local isLoading = g_gameStateManager:getGameState() == GameState.LOADING
 
 	renderText = function(x, y, size, text, fontName)
@@ -404,13 +498,13 @@ function FontManager:replaceEngineFunctions()
 			local lines = { { ["text"] = "", ["width"] = 0, ["x"] = x } }
 
 			if args.alignY == RenderText.VERTICAL_ALIGN_BASELINE then
-				-- ?
+				y = y - self.yOffset.baseline * scale
 			elseif args.alignY == RenderText.VERTICAL_ALIGN_TOP then
-				y = y + size
+				y = y - self.yOffset.baseline * scale
 			elseif args.alignY == RenderText.VERTICAL_ALIGN_MIDDLE then
-				
+				y = y - self.yOffset.middle * scale
 			elseif args.alignY == RenderText.VERTICAL_ALIGN_BOTTOM then
-				y = y - size
+				y = y - self.yOffset.middle * scale * 2
 			end
 
 
@@ -502,7 +596,7 @@ function FontManager:replaceEngineFunctions()
 					end
 
 					local variation = character:getVariation(variationName)
-					writeCharacter(character, variation, line.x + xOffset, (y - yOffset) - self.yOffset)
+					writeCharacter(character, variation, line.x + xOffset, (y - yOffset))
 					xOffset = xOffset + variation.screenWidth * scale
 
 				end
@@ -588,7 +682,7 @@ function FontManager:replaceEngineFunctions()
 						if isRendered then
 
 							overlay:setDimension(screenWidth, screenHeight)
-							overlay:setPosition(line.x, line.y + size * 0.5 - self.yOffset)
+							overlay:setPosition(line.x, line.y + size * 0.5)
 							line.strikethrough = overlay
 
 						end
@@ -660,7 +754,8 @@ function FontManager:loadFonts()
 	self.fontHolder = g_i3DManager:loadI3DFile(modDirectory .. "fonts/fontHolder.i3d")
 	self.template = I3DUtil.indexToObject(self.fontHolder, "0|0")
 
-	self.text = g_i3DManager:loadI3DFile(modDirectory .. "fonts/text.i3d")
+	local i3dNode = g_i3DManager:loadI3DFile(modDirectory .. "fonts/text.i3d")
+	self.text = getChildAt(i3dNode, 0)
 	self.textGroup = createTransformGroup("fontLibrary_texts")
 
 	link(getRootNode(), self.textGroup)
@@ -814,6 +909,8 @@ end
 function FontManager:setDefaultFont(id)
 
 	self.defaultFont = id or self.defaultFont
+
+	if self.fonts[self.defaultFont] == nil then self.defaultFont = "nunito_sans" end
 
 end
 
