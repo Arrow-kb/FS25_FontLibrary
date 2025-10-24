@@ -9,11 +9,22 @@
 
 		<text name="fl_settings" text="Schriftartenbibliothek"/>
 
+		<text name="fl_settings_off" text="Aus"/>
+		<text name="fl_settings_on" text="Auf"/>
+
 		<text name="fl_settings_font_label" text="Schriftart ändern"/>
 		<text name="fl_settings_font_tooltip" text="Der schnelle braune Fuchs springt über den faulen Hund. 1234567890"/>
 
 		<text name="fl_settings_viewFonts_label" text="Schriftarten anzeigen"/>
 		<text name="fl_settings_viewFonts_tooltip" text="Varianten der installierten Schriftarten anzeigen"/>
 		<text name="fl_settings_viewFonts_text" text="Varianten der installierten Schriftarten anzeigen"/>
+
+		<text name="fl_settings_render2D_label" text="Benutzerdefinierter 2D-Text"/>
+		<text name="fl_settings_render2D_tooltip_1" text="2D-Text (UI) wird von der Engine gerendert."/>
+		<text name="fl_settings_render2D_tooltip_2" text="2D-Text (UI) wird von diesem Mod gerendert."/>
+
+		<text name="fl_settings_render3D_label" text="Benutzerdefinierter 3D-Text"/>
+		<text name="fl_settings_render3D_tooltip_1" text="3D-Text (Welt) wird von der Engine gerendert."/>
+		<text name="fl_settings_render3D_tooltip_2" text="3D-Text (Welt) wird durch diesen Mod gerendert."/>
 	</texts>
 </l10n>

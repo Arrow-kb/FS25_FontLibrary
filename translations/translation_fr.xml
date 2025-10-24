@@ -9,11 +9,22 @@
 
 		<text name="fl_settings" text="Bibliothèque De Polices"/>
 
+		<text name="fl_settings_off" text="Désactivé"/>
+		<text name="fl_settings_on" text="Sur"/>
+
 		<text name="fl_settings_font_label" text="Changer la police"/>
 		<text name="fl_settings_font_tooltip" text="Le renard brun rapide saute par-dessus le chien paresseux. 1234567890"/>
 
 		<text name="fl_settings_viewFonts_label" text="Afficher les polices"/>
 		<text name="fl_settings_viewFonts_tooltip" text="Afficher les variantes des polices installées"/>
 		<text name="fl_settings_viewFonts_text" text="Afficher les variantes des polices installées"/>
+
+		<text name="fl_settings_render2D_label" text="Texte 2D personnalisé"/>
+		<text name="fl_settings_render2D_tooltip_1" text="Le texte 2D (interface utilisateur) sera rendu par le moteur."/>
+		<text name="fl_settings_render2D_tooltip_2" text="Le texte 2D (interface utilisateur) sera rendu par ce mod."/>
+
+		<text name="fl_settings_render3D_label" text="Texte 3D personnalisé"/>
+		<text name="fl_settings_render3D_tooltip_1" text="Le texte 3D (monde) sera rendu par le moteur."/>
+		<text name="fl_settings_render3D_tooltip_2" text="Le texte 3D (monde) sera rendu par ce mod."/>
 	</texts>
 </l10n>
