@@ -50,6 +50,26 @@ FLSettings.SETTINGS = {
 		["type"] = "Button",
 		["ignore"] = true,
 		["callback"] = FLSettings.onClickViewFonts
+	},
+	
+	["render2D"] = {
+		["index"] = 3,
+		["type"] = "BinaryOption",
+		["dynamicTooltip"] = true,
+		["default"] = 2,
+		["binaryType"] = "offOn",
+		["values"] = { false, true },
+		["callback"] = FontManager.onSettingChanged
+	},
+	
+	["render3D"] = {
+		["index"] = 4,
+		["type"] = "BinaryOption",
+		["dynamicTooltip"] = true,
+		["default"] = 2,
+		["binaryType"] = "offOn",
+		["values"] = { false, true },
+		["callback"] = FontManager.onSettingChanged
 	}
 
 }

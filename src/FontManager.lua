@@ -62,6 +62,8 @@ function FontManager.new()
 	self.cachedOverlays = {}
 	self.cachedLineOverlays = {}
 
+	self.render2D, self.render3D = true, true
+
 	self.args = {
 		["colour"] = { 1, 1, 1, 1 },
 		["bold"] = false,
@@ -107,6 +109,11 @@ function FontManager:replaceEngineFunctions()
 		["setTextColor"] = setTextColor,
 		["setTextAlignment"] = setTextAlignment,
 		["setTextVerticalAlignment"] = setTextVerticalAlignment,
+		["setTextClipArea"] = setTextClipArea,
+		["setTextFirstLineIndentation"] = setTextFirstLineIndentation,
+		["setTextWrapWidth"] = setTextWrapWidth,
+		["setTextLineBounds"] = setTextLineBounds,
+		["setTextLineHeightScale"] = setTextLineHeightScale,
 		["draw"] = draw
 	}
 
@@ -215,6 +222,7 @@ function FontManager:replaceEngineFunctions()
 	setTextClipArea = function(x1, y1, x2, y2)
 
 		self.args.clip = { x1, y1, x2, y2 }
+		engine.setTextClipArea(x1, y1, x2, y2)
 
 	end
 
@@ -222,6 +230,7 @@ function FontManager:replaceEngineFunctions()
 	setTextFirstLineIndentation = function(indentation)
 
 		self.args.lines.indentation = indentation or 0
+		engine.setTextFirstLineIndentation(indentation)
 
 	end
 
@@ -229,6 +238,7 @@ function FontManager:replaceEngineFunctions()
 	setTextWrapWidth = function(width)
 
 		self.args.lines.width = width or 0
+		engine.setTextWrapWidth(width)
 
 	end
 
@@ -237,6 +247,7 @@ function FontManager:replaceEngineFunctions()
 
 		self.args.lines.startLine = startLine
 		self.args.lines.numLines = numLines
+		engine.setTextLineBounds(startLine, numLines)
 
 	end
 
@@ -244,6 +255,7 @@ function FontManager:replaceEngineFunctions()
 	setTextLineHeightScale = function(heightScale)
 
 		self.args.lines.heightScale = heightScale or 0
+		engine.setTextLineHeightScale(heightScale)
 
 	end
 
@@ -256,6 +268,13 @@ function FontManager:replaceEngineFunctions()
 
 
 	renderText3D = function(x, y, z, rx, ry, rz, size, text, fontName)
+
+		if not self.render3D then
+
+			engine.renderText3D(x, y, z, rx, ry, rz, size, text)
+			return
+
+		end
 
 		fontName = fontName or self.defaultFont
 
@@ -434,6 +453,13 @@ function FontManager:replaceEngineFunctions()
 	local isLoading = g_gameStateManager:getGameState() == GameState.LOADING
 
 	renderText = function(x, y, size, text, fontName)
+
+		if not self.render2D then
+
+			engine.renderText(x, y, size, text)
+			return
+
+		end
 	
 		local args = self.args
 
@@ -928,6 +954,13 @@ function FontManager:getCharacter(font, character)
 	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end
 
 	return nil
+
+end
+
+
+function FontManager.onSettingChanged(setting, value)
+
+	g_fontManager[setting] = value
 
 end
 

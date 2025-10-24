@@ -8,6 +8,9 @@
 		<text name="fl_example_strikethrough" text="This is strikethrough text!"/>
 		
 		<text name="fl_settings" text="Font Library"/>
+
+		<text name="fl_settings_off" text="Off"/>
+		<text name="fl_settings_on" text="On"/>
 		
 		<text name="fl_settings_font_label" text="Change Font"/>
 		<text name="fl_settings_font_tooltip" text="The quick brown fox jumps over the lazy dog. 1234567890"/>
@@ -15,5 +18,13 @@
 		<text name="fl_settings_viewFonts_label" text="View Fonts"/>
 		<text name="fl_settings_viewFonts_tooltip" text="View variations of installed fonts"/>
 		<text name="fl_settings_viewFonts_text" text="View variations of installed fonts"/>
+
+		<text name="fl_settings_render2D_label" text="Custom 2D Text"/>
+		<text name="fl_settings_render2D_tooltip_1" text="2D (UI) text will be rendered by the engine"/>
+		<text name="fl_settings_render2D_tooltip_2" text="2D (UI) text will be rendered by this mod"/>
+
+		<text name="fl_settings_render3D_label" text="Custom 3D Text"/>
+		<text name="fl_settings_render3D_tooltip_1" text="3D (world) text will be rendered by the engine"/>
+		<text name="fl_settings_render3D_tooltip_2" text="3D (world) text will be rendered by this mod"/>
 	</texts>
 </l10n>
