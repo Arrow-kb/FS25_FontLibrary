@@ -58,7 +58,7 @@ def getIsCharacterSupported(cmap, char):
         return False
 
 
-def createFontImage(filename, characters, varType, bgColour, textColour, text, font, strokeWidth=0, fixedWidth=False, isItalic=False):
+def createFontImage(filename, characters, varType, bgColour, textColour, text, font, strokeWidth=0, fixedWidth=False, isItalic=False, isAlpha=False):
 
     fixedWidth = fixedWidth or isItalic
 
@@ -116,6 +116,13 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
                     }
                 }
 
+            elif isAlpha:
+
+                leftX, rightX = findFirstAndLastWhitePixel(image, current_x, y_pos)
+
+                characters[byte][varType]["left"] = (leftX - current_x) / 2
+                characters[byte][varType]["right"] = (rightX - current_x) / 2
+                
             else:
 
                 characters[byte][varType] = {
@@ -238,10 +245,10 @@ characters = createFontImage(f"{font_name}/{font_name}", None, "regular", (0, 0,
 createFontImage(f"{font_name}/{font_name}Bold", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=2)
 createFontImage(f"{font_name}/{font_name}Italic", characters, "italic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, isItalic=True)
 createFontImage(f"{font_name}/{font_name}BoldItalic", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=2, isItalic=True)
-createFontImage(f"{font_name}/{font_name}_alpha", None, "regular", (0, 0, 0, 255), (255, 255, 255, 255), text, font, fixedWidth=True)
-createFontImage(f"{font_name}/{font_name}Bold_alpha", None, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=2, fixedWidth=True)
-createFontImage(f"{font_name}/{font_name}Italic_alpha", None, "italic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, isItalic=True)
-createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", None, "boldItalic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=2, isItalic=True)
+createFontImage(f"{font_name}/{font_name}_alpha", characters, "regular", (0, 0, 0, 255), (255, 255, 255, 255), text, font, fixedWidth=True, isAlpha=True)
+createFontImage(f"{font_name}/{font_name}Bold_alpha", characters, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=2, fixedWidth=True, isAlpha=True)
+createFontImage(f"{font_name}/{font_name}Italic_alpha", characters, "italic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, isItalic=True, isAlpha=True)
+createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", characters, "boldItalic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=2, isItalic=True, isAlpha=True)
 
 
 # Font XML
@@ -276,18 +283,26 @@ for char in text:
 
     regular.set("x", str(item["regular"]["x"]))
     regular.set("y", str(item["regular"]["y"]))
+    regular.set("left", str(item["regular"]["left"]))
+    regular.set("right", str(item["regular"]["right"]))
     regular.set("width", str(item["regular"]["width"]))
 
     bold.set("x", str(item["bold"]["x"]))
     bold.set("y", str(item["bold"]["y"]))
+    bold.set("left", str(item["bold"]["left"]))
+    bold.set("right", str(item["bold"]["right"]))
     bold.set("width", str(item["bold"]["width"]))
 
     italic.set("x", str(item["italic"]["x"]))
     italic.set("y", str(item["italic"]["y"]))
+    italic.set("left", str(item["italic"]["left"]))
+    italic.set("right", str(item["italic"]["right"]))
     italic.set("width", str(item["italic"]["width"]))
 
     boldItalic.set("x", str(item["boldItalic"]["x"]))
     boldItalic.set("y", str(item["boldItalic"]["y"]))
+    boldItalic.set("left", str(item["boldItalic"]["left"]))
+    boldItalic.set("right", str(item["boldItalic"]["right"]))
     boldItalic.set("width", str(item["boldItalic"]["width"]))
 
     i += 1

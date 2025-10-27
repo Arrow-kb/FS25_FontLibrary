@@ -13,7 +13,7 @@
 
 
   <Materials>
-    <Material name="fontMP_mat" materialId="28" diffuseColor="0.501961 0.501961 0.501961 1" alphaBlending="true" customShaderId="3">
+    <Material name="fontMP_mat" materialId="25" diffuseColor="0.501961 0.501961 0.501961 1" alphaBlending="true" customShaderId="3" shadingRate="1x2">
       <Glossmap fileId="2"/>
       <Custommap name="alphaMap" fileId="4"/>
       <CustomParameter name="widthAndHeight" value="64 4"/>
@@ -25,9 +25,9 @@
   </Shapes>
 
   <Scene>
-    <TransformGroup name="fonts" nodeId="8">
-      <TransformGroup name="template" nodeId="9">
-        <Shape name="template" shapeId="1" clipDistance="15" nodeId="10" castsShadows="false" receiveShadows="false" decalLayer="2" materialIds="28"/>
+    <TransformGroup name="fonts" nodeId="11">
+      <TransformGroup name="template" nodeId="12">
+        <Shape name="template" shapeId="1" clipDistance="15" nodeId="13" castsShadows="false" receiveShadows="false" materialIds="25"/>
       </TransformGroup>
     </TransformGroup>
   </Scene>
