@@ -81,6 +81,15 @@ function FontManager.new()
 			["startLine"] = 0,
 			["numLines"] = 0,
 			["heightScale"] = RenderText.DEFAULT_LINE_HEIGHT_SCALE
+		},
+		["lines3D"] = {
+			["indentation"] = 0,
+			["width"] = 0,
+			["max"] = 0,
+			["heightScale"] = RenderText.DEFAULT_LINE_HEIGHT_SCALE,
+			["autoScale"] = false,
+			["removeSpaces"] = false,
+			["numWords"] = 0
 		}
 	}
 
@@ -243,6 +252,34 @@ function FontManager:replaceEngineFunctions()
 	end
 
 
+	set3DTextWrapWidth = function(width)
+
+		self.args.lines3D.width = width or 0
+
+	end
+
+
+	set3DTextAutoScale = function(autoScale)
+
+		self.args.lines3D.autoScale = autoScale or false
+
+	end
+
+
+	set3DTextRemoveSpaces = function(removeSpaces)
+
+		self.args.lines3D.removeSpaces = removeSpaces or false
+
+	end
+
+	
+	set3DTextWordsPerLine = function(numWords)
+
+		self.args.lines3D.numWords = numWords or 0
+
+	end
+
+
 	setTextLineBounds = function(startLine, numLines)
 
 		self.args.lines.startLine = startLine
@@ -254,7 +291,8 @@ function FontManager:replaceEngineFunctions()
 
 	setTextLineHeightScale = function(heightScale)
 
-		self.args.lines.heightScale = heightScale or 0
+		self.args.lines.heightScale = heightScale or 1.1
+		self.args.lines3D.heightScale = heightScale or 1.1
 		engine.setTextLineHeightScale(heightScale)
 
 	end
@@ -276,7 +314,9 @@ function FontManager:replaceEngineFunctions()
 
 		end
 
-		fontName = fontName or self.defaultFont
+		local args = self.args
+
+		fontName = fontName or args.font or self.defaultFont
 
 		if self.fonts[fontName] == nil then
 			
@@ -291,7 +331,6 @@ function FontManager:replaceEngineFunctions()
 		end
 
 
-		local args = self.args
 		local variationName = "regular"
 
 		if args.bold and args.italic then
@@ -363,8 +402,9 @@ function FontManager:replaceEngineFunctions()
 
 
 	create3DLinkedText = function(parent, x, y, z, rx, ry, rz, size, text, fontName)
-
-		fontName = fontName or self.defaultFont
+	
+		local args = self.args
+		fontName = fontName or args.font or self.defaultFont
 
 		if self.fonts[fontName] == nil then
 			
@@ -379,7 +419,6 @@ function FontManager:replaceEngineFunctions()
 		end
 
 
-		local args = self.args
 		local variationName = "regular"
 
 		if args.bold and args.italic then
@@ -404,25 +443,112 @@ function FontManager:replaceEngineFunctions()
 		local colour = args.colour
 		setScale(node, size, size, 0)
 
-		for i = 1, #text do
+		local words = string.split(text, " ")
+		local lines = { { ["text"] = "", ["width"] = 0, ["x"] = 0, ["y"] = 0, ["scale"] = 1 } }
+		local lineConfig = args.lines3D
+		local line = lines[1]
 
-			local character = self:getCharacter(font, string.sub(text, i, i))
+		local numWordsOnLine = 0
 
-			if character == nil then
-				xOffset = xOffset + 0.5
-				continue
+
+		for j, word in pairs(words) do
+
+			local wordWidth = 0
+
+			for i = 1, #word do
+
+				local character = self:getCharacter(font, string.sub(word, i, i))
+
+				if character == nil then
+					wordWidth = wordWidth + 0.5
+					continue
+				end
+
+				local variation = character:getVariation(variationName)
+				wordWidth = (wordWidth - variation.left) + variation.right
+
 			end
 
-			local charNode = clone(variationNode, false, false, false)
-			link(node, charNode)
+			if (lineConfig.numWords ~= 0 and lineConfig.numWords == numWordsOnLine) or (lineConfig.width ~= 0 and (line.width + wordWidth) * size > lineConfig.width) then
+				
+				if line.text == "" and lineConfig.autoScale then
+					line.scale = lineConfig.width / (wordWidth * size)
+				elseif line.text ~= "" then
+					table.insert(lines, { ["text"] = "", ["width"] = 0, ["x"] = 0, ["y"] = 0, ["scale"] = 1 })
+					line = lines[#lines]
+					numWordsOnLine = 0
+				end
 
-			setShaderParameter(charNode, "index", character.index, nil, nil, nil, false)
-			setShaderParameter(charNode, "colorScale", colour[1], colour[2], colour[3], colour[4], false)
+			end
 
-			setTranslation(charNode, xOffset, 0, 0)
-			xOffset = xOffset + character:getVariation(variationName).width / 128
+			line.text = line.text .. word
+			line.width = line.width + wordWidth
+			numWordsOnLine = numWordsOnLine + 1
+
+			if not lineConfig.removeSpaces and j ~= #words then
+				line.text = line.text .. " "
+				line.width = line.width + 0.5
+			end
 
 		end
+
+
+		for j, line in pairs(lines) do
+
+			if args.alignX == RenderText.ALIGN_CENTER then
+				line.x = line.x - line.width / 2
+			elseif args.alignX == RenderText.ALIGN_RIGHT then
+				line.x = line.x - line.width
+			end
+
+			if #lines > 1 then
+
+				if args.alignY == RenderText.VERTICAL_ALIGN_BASELINE then
+					line.y = 1.5 - j
+				elseif args.alignY == RenderText.VERTICAL_ALIGN_TOP then
+					line.y = 0.5 - j
+				elseif args.alignY == RenderText.VERTICAL_ALIGN_MIDDLE then
+					local centerLine = math.ceil(#lines / 2)
+					if j ~= centerLine then line.y = centerLine - j end
+				elseif args.alignY == RenderText.VERTICAL_ALIGN_BOTTOM then
+					line.y = 0.5 + (#lines - j)
+				end
+
+				line.y = line.y * lineConfig.heightScale
+
+			end
+
+			local xOffset = 0
+
+			for i = 1, #line.text do
+
+				local character = self:getCharacter(font, string.sub(line.text, i, i))
+
+				if character == nil then
+					xOffset = xOffset + 0.5
+					continue
+				end
+
+				local charNode = clone(variationNode, false, false, false)
+				link(node, charNode)
+
+				setShaderParameter(charNode, "index", character.index, nil, nil, nil, false)
+				setShaderParameter(charNode, "colorScale", colour[1], colour[2], colour[3], colour[4], false)
+
+				if line.scale ~= 1 then
+					setScale(charNode, line.scale, line.scale, 1)
+					xOffset = xOffset - (i - 1) * line.scale
+				end
+
+				local variation = character:getVariation(variationName)
+				xOffset = xOffset - variation.left
+				setTranslation(charNode, line.x + xOffset, line.y, 0)
+				xOffset = xOffset + variation.right
+
+			end
+
+		end
+
 
 		self.cache3DLinked[node] = {
 			["x"] = x,
@@ -437,6 +563,20 @@ function FontManager:replaceEngineFunctions()
 		}
 
 		return node
+
+	end
+
+
+	function change3DLinkedTextColour(node, r, g, b, a)
+
+		if node == nil or node == 0 then return end
+
+		for i = 0, getNumOfChildren(node) - 1 do
+
+			local child = getChildAt(node, i)
+			setShaderParameter(child, "colorScale", r, g, b, a, false)
+
+		end
 
 	end
 

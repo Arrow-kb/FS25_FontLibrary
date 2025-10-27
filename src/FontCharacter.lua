@@ -45,6 +45,9 @@ function FontCharacter:loadVariation(xmlFile, key, imageWidth, imageHeight)
 	variation.x = xmlFile:getInt(key .. "#x")
 	variation.y = xmlFile:getInt(key .. "#y")
 
+	variation.left = (xmlFile:getFloat(key .. "#left") - 2) / 64
+	variation.right = (xmlFile:getFloat(key .. "#right") + 2) / 64
+
 	variation.screenWidth, variation.screenHeight = getNormalizedScreenValues(variation.width, variation.height)
 	variation.imageWidth, variation.imageHeight = imageWidth, imageHeight
 

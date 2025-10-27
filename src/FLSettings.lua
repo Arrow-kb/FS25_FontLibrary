@@ -265,6 +265,7 @@ function FLSettings.initialize()
 	end
 
 	g_fontManager:setSettingsManager(FLSettings)
+	FLSettings.applyDefaultSettings()
 
 end
 
@@ -357,7 +358,7 @@ function FLSettings.applyDefaultSettings()
 
 		for name, setting in pairs(FLSettings.SETTINGS) do
 		
-			if setting.ignore then continue end
+			if setting.ignore or name == "font" then continue end
 
 			if setting.callback ~= nil then setting.callback(name, setting.values[setting.state]) end
 

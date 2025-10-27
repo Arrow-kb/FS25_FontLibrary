@@ -1,6 +1,6 @@
 <modDesc descVersion="103">
     <author>Arrow</author>
-    <version>0.9.1.0</version>
+    <version>1.0.0.1</version>
     <title>
         <en>Font Library</en>
         <de>Schriftartenbibliothek</de>
@@ -8,49 +8,19 @@
     </title>
     <description>
         <en>
-        <![CDATA[ This mod is a framework for other mods to easily render text with custom fonts and styles, both in  2D and 3D, and adds italic text.
+        <![CDATA[ This mod is a framework for other mods to easily render text with custom fonts and styles, both in  2D and 3D, and adds italic, underlined and strikethrough text.
 
-For normal users, there is a setting to change the default UI font of the game.
-
-Changelog:
-
-0.9.1.0
-- Added strikethrough text
-- Added underlined text
-- Added text clip area
-- Added text lines
-- Fixed key buttons displaying incorrectly
-- More prevention of dots under the letter 'i' ]]>
+For normal users, there is a setting to change the default UI font of the game. Currently contains 14 fonts among the latin font pack. This mod contains only the base game font (NunitoSans), it is required to download the font packs which contain more Latin fonts. ]]>
         </en>
         <de>
-        <![CDATA[ Dieser Mod ist ein Framework für andere Mods, mit dem Text sowohl in 2D als auch in 3D einfach mit benutzerdefinierten Schriftarten und Stilen gerendert werden kann, und fügt kursiven Text hinzu.
+        <![CDATA[ Dieser Mod ist ein Framework für andere Mods, mit dem Text sowohl in 2D als auch in 3D einfach mit benutzerdefinierten Schriftarten und Stilen gerendert werden kann, und fügt kursiven, unterstrichener und durchgestrichener Text.
 
-Für normale Benutzer gibt es eine Einstellung, mit der die Standard-UI-Schriftart des Spiels geändert werden kann.
-
-Changelog:
-
-0.9.1.0
-- Added strikethrough text
-- Added underlined text
-- Added text clip area
-- Added text lines
-- Fixed key buttons displaying incorrectly
-- More prevention of dots under the letter 'i' ]]>
+Für normale Benutzer gibt es eine Einstellung, mit der die Standard-UI-Schriftart des Spiels geändert werden kann. Derzeit enthält das Latin-Font-Paket 14 Schriftarten. Dieser Mod enthält nur die Schriftart des Basisspiels (NunitoSans). Es ist erforderlich, die Font-Pakete herunterzuladen, die weitere Latin-Schriftarten enthalten. ]]>
         </de>
         <fr>
-        <![CDATA[ Ce mod est un framework permettant à d'autres mods d'afficher facilement du texte avec des polices et des styles personnalisés, en  2D et en 3D, et ajoute du texte en italique.
+        <![CDATA[ Ce mod est un framework permettant à d'autres mods d'afficher facilement du texte avec des polices et des styles personnalisés, en  2D et en 3D, et ajoute du texte en italique, souligné et barré.
 
-Pour les utilisateurs normaux, il existe un paramètre permettant de modifier la police par défaut de l'interface utilisateur du jeu.
-
-Changelog:
-
-0.9.1.0
-- Added strikethrough text
-- Added underlined text
-- Added text clip area
-- Added text lines
-- Fixed key buttons displaying incorrectly
-- More prevention of dots under the letter 'i' ]]>
+Pour les utilisateurs normaux, il existe un paramètre permettant de modifier la police par défaut de l'interface utilisateur du jeu. Contient actuellement 14 polices parmi le pack de polices latines. Ce mod ne contient que la police du jeu de base (NunitoSans), il est nécessaire de télécharger les packs de polices qui contiennent davantage de polices latines. ]]>
         </fr>
     </description>
     <iconFilename>icon_FontLibrary.dds</iconFilename>
