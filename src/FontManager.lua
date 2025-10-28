@@ -1083,12 +1083,28 @@ end
 
 function FontManager:getCharacter(font, character)
 
-	local byte = string.byte(character)
+	local byte = utf8ToUnicode(character)
+
+	if byte == 32 then return nil end
 
 	if font.characters[byte] ~= nil then return font.characters[byte] end
 	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end
 
-	byte = string.byte(character:upper())
+	byte = utf8ToUnicode(character:upper())
+
+	if font.characters[byte] ~= nil then return font.characters[byte] end
+	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end
+
+	local ascii = asciiToUtf8(character)
+
+	if #ascii == 2 then
+	
+		local control = string.sub(ascii, 2, 2)
+		if string.byte(control) == 160 or string.byte(control) == 130 then return nil end
+	
+	end
+
+	byte = utf8ToUnicode(ascii)
 
 	if font.characters[byte] ~= nil then return font.characters[byte] end
 	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end

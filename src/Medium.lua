@@ -13,8 +13,8 @@ local files = {
 	"input/InputDisplayManager.lua",
 	"input/KeyboardHelper.lua",
 	"FontCharacter.lua",
-	"FontManager.lua",
-	"I18N.lua"
+	"FontManager.lua"
+	--"I18N.lua"
 }
 
 
