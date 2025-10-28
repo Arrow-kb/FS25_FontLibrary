@@ -170,8 +170,9 @@ if len(sys.argv) == 0 or not os.path.isfile(sys.argv[1]):
 
 font_path = sys.argv[1]
 print("Font ID does not have to be unique; FontLibrary will make it unique and return the unique id")
-font_name = input("Enter the id of the font (eg: GENERIC):")
-font_language = input("Enter the language of the font (latin, cyrillic):")
+font_name = input("Enter the id of the font (eg: GENERIC): ")
+font_language = input("Enter the language of the font (latin, cyrillic): ") or "latin"
+stroke_width = float(input("Enter the stroke width (default 0): ") or "0")
 
 trueTypeFont = TTFont(font_path)
 cmap = trueTypeFont.getBestCmap()
@@ -241,14 +242,14 @@ except Exception as e:
     sys.exit(1)
 
     
-characters = createFontImage(f"{font_name}/{font_name}", None, "regular", (0, 0, 0, 0), (255, 255, 255, 255), text, font)
-createFontImage(f"{font_name}/{font_name}Bold", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=2)
-createFontImage(f"{font_name}/{font_name}Italic", characters, "italic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, isItalic=True)
-createFontImage(f"{font_name}/{font_name}BoldItalic", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=2, isItalic=True)
-createFontImage(f"{font_name}/{font_name}_alpha", characters, "regular", (0, 0, 0, 255), (255, 255, 255, 255), text, font, fixedWidth=True, isAlpha=True)
-createFontImage(f"{font_name}/{font_name}Bold_alpha", characters, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=2, fixedWidth=True, isAlpha=True)
-createFontImage(f"{font_name}/{font_name}Italic_alpha", characters, "italic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, isItalic=True, isAlpha=True)
-createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", characters, "boldItalic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=2, isItalic=True, isAlpha=True)
+characters = createFontImage(f"{font_name}/{font_name}", None, "regular", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width)
+createFontImage(f"{font_name}/{font_name}Bold", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2)
+createFontImage(f"{font_name}/{font_name}Italic", characters, "italic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, isItalic=True, strokeWidth=stroke_width)
+createFontImage(f"{font_name}/{font_name}BoldItalic", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2, isItalic=True)
+createFontImage(f"{font_name}/{font_name}_alpha", characters, "regular", (0, 0, 0, 255), (255, 255, 255, 255), text, font, fixedWidth=True, isAlpha=True, strokeWidth=stroke_width)
+createFontImage(f"{font_name}/{font_name}Bold_alpha", characters, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2, fixedWidth=True, isAlpha=True)
+createFontImage(f"{font_name}/{font_name}Italic_alpha", characters, "italic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, isItalic=True, isAlpha=True, strokeWidth=stroke_width)
+createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", characters, "boldItalic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2, isItalic=True, isAlpha=True)
 
 
 # Font XML
