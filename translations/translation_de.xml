@@ -19,6 +19,9 @@
 		<text name="fl_settings_viewFonts_tooltip" text="Varianten der installierten Schriftarten anzeigen"/>
 		<text name="fl_settings_viewFonts_text" text="Varianten der installierten Schriftarten anzeigen"/>
 
+		<text name="fl_settings_sizeScale_label" text="Textgröße"/>
+		<text name="fl_settings_sizeScale_tooltip" text="Ändern Sie die Größe des UI-Textes"/>
+
 		<text name="fl_settings_render2D_label" text="Benutzerdefinierter 2D-Text"/>
 		<text name="fl_settings_render2D_tooltip_1" text="2D-Text (UI) wird von der Engine gerendert."/>
 		<text name="fl_settings_render2D_tooltip_2" text="2D-Text (UI) wird von diesem Mod gerendert."/>

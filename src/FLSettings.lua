@@ -51,9 +51,18 @@ FLSettings.SETTINGS = {
 		["ignore"] = true,
 		["callback"] = FLSettings.onClickViewFonts
 	},
+
+	["sizeScale"] = {
+		["index"] = 3,
+		["type"] = "MultiTextOption",
+		["default"] = 12,
+		["valueType"] = "float",
+		["values"] = { 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0 },
+		["callback"] = FontManager.onSettingChanged
+	},
 	
 	["render2D"] = {
-		["index"] = 3,
+		["index"] = 4,
 		["type"] = "BinaryOption",
 		["dynamicTooltip"] = true,
 		["default"] = 2,
@@ -63,7 +72,7 @@ FLSettings.SETTINGS = {
 	},
 	
 	["render3D"] = {
-		["index"] = 4,
+		["index"] = 5,
 		["type"] = "BinaryOption",
 		["dynamicTooltip"] = true,
 		["default"] = 2,

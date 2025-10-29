@@ -48,6 +48,11 @@ local closestCharacters = {
 	[252] = 117
 }
 
+local invalidCharacters = {
+	[9003] = true,
+	[9166] = true
+}
+
 
 function FontManager.new()
 
@@ -61,6 +66,7 @@ function FontManager.new()
 	self.cache3DLinked = {}
 	self.cachedOverlays = {}
 	self.cachedLineOverlays = {}
+	self.sizeScale = 1
 
 	self.render2D, self.render3D = true, true
 
@@ -143,7 +149,9 @@ function FontManager:replaceEngineFunctions()
 
 		end
 
-		for i = #self.cache2D, 1, -1 do
+		local toRemove = {}
+
+		for i = 1, #self.cache2D do
 		
 			local cache = self.cache2D[i]
 
@@ -157,9 +165,13 @@ function FontManager:replaceEngineFunctions()
 
 				end
 
-				table.remove(self.cache2D, i)
+				table.insert(toRemove, i)
 			end
 
+		end
+
+		for i = #toRemove, 1, -1 do
+			table.remove(self.cache2D, toRemove[i])
 		end
 
 	end
@@ -366,7 +378,7 @@ function FontManager:replaceEngineFunctions()
 
 		for i = 1, #text do
 
-			local character = self:getCharacter(font, string.sub(text, i, i))
+			local character = self:getCharacter(font, utf8Substr(text, i - 1, 1))
 
 			if character == nil then
 				xOffset = xOffset + 0.5
@@ -457,7 +469,7 @@ function FontManager:replaceEngineFunctions()
 
 			for i = 1, #word do
 
-				local character = self:getCharacter(font, string.sub(word, i, i))
+				local character = self:getCharacter(font, utf8Substr(word, i - 1, 1))
 
 				if character == nil then
 					wordWidth = wordWidth + 0.5
@@ -522,7 +534,7 @@ function FontManager:replaceEngineFunctions()
 
 			for i = 1, #line.text do
 
-				local character = self:getCharacter(font, string.sub(line.text, i, i))
+				local character = self:getCharacter(font, utf8Substr(line.text, i - 1, 1))
 
 				if character == nil then
 					xOffset = xOffset + 0.5
@@ -653,8 +665,9 @@ function FontManager:replaceEngineFunctions()
 		end
 		
 		local args = self.args
-		local scale = size * 10
+		local scale = size * 10 * self.sizeScale
 		local cx1, cy1, cx2, cy2 = unpack(args.clip)
+		local engineY = y
 
 		if cachedRender == nil then
 
@@ -715,7 +728,12 @@ function FontManager:replaceEngineFunctions()
 
 				for i = 1, #word do
 
-					local character = self:getCharacter(font, string.sub(word, i, i))
+					local character, useEngineRenderer = self:getCharacter(font, utf8Substr(word, i - 1, 1))
+
+					if useEngineRenderer then
+						engine.renderText(x, engineY, size, text)
+						return
+					end
 
 					if character == nil then
 						wordWidth = wordWidth + size * 0.25
@@ -750,11 +768,11 @@ function FontManager:replaceEngineFunctions()
 					line.x = line.x - line.width
 				end
 
-				local text, xOffset, yOffset = line.text, 0, (j - 1) * size
+				local text, xOffset, yOffset = line.text, 0, (j - 1) * size + self.yOffset.baseline * (self.sizeScale - 0.75)
 
 				for i = 1, #text do
 
-					local character = self:getCharacter(font, string.sub(text, i, i))
+					local character = self:getCharacter(font, utf8Substr(text, i - 1, 1))
 
 					if character == nil then
 						xOffset = xOffset + size * 0.25
@@ -787,7 +805,7 @@ function FontManager:replaceEngineFunctions()
 				table.insert(cachedRender.lines, {
 					["width"] = line.width,
 					["x"] = line.x,
-					["y"] = y - (i - 1) * size
+					["y"] = y - (i - 1) * size - self.yOffset.baseline * (self.sizeScale - 0.75)
 				})
 
 			end
@@ -800,9 +818,15 @@ function FontManager:replaceEngineFunctions()
 
 		local colour = args.colour
 
-		for _, overlay in pairs(cachedRender.overlays) do
-			overlay:setColor(colour[1], colour[2], colour[3], colour[4])
-			overlay:render()
+		if cachedRender.colour ~= colour then
+			
+			cachedRender.colour = colour
+
+			for _, overlay in pairs(cachedRender.overlays) do
+				overlay:setColor(colour[1], colour[2], colour[3], colour[4])
+				overlay:render()
+			end
+
 		end
 
 		if args.underline or args.strikethrough then
@@ -1083,33 +1107,23 @@ end
 
 function FontManager:getCharacter(font, character)
 
+	if character == nil then return nil end
+
 	local byte = utf8ToUnicode(character)
 
-	if byte == 32 then return nil end
+	if invalidCharacters[byte] then return nil, true end
 
-	if font.characters[byte] ~= nil then return font.characters[byte] end
-	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end
+	if byte == 32 or byte == 160 then return nil end
 
-	byte = utf8ToUnicode(character:upper())
+	if font.characters[byte] ~= nil then return font.characters[byte], false end
+	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]], false end
 
-	if font.characters[byte] ~= nil then return font.characters[byte] end
-	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end
+	byte = utf8ToUnicode(utf8ToUpper(character))
 
-	local ascii = asciiToUtf8(character)
+	if font.characters[byte] ~= nil then return font.characters[byte], false end
+	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]], false end
 
-	if #ascii == 2 then
-	
-		local control = string.sub(ascii, 2, 2)
-		if string.byte(control) == 160 or string.byte(control) == 130 then return nil end
-	
-	end
-
-	byte = utf8ToUnicode(ascii)
-
-	if font.characters[byte] ~= nil then return font.characters[byte] end
-	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]] end
-
-	return nil
+	return nil, false
 
 end
 

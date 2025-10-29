@@ -14,7 +14,6 @@ local files = {
 	"input/KeyboardHelper.lua",
 	"FontCharacter.lua",
 	"FontManager.lua"
-	--"I18N.lua"
 }
 
 
