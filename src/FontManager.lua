@@ -132,13 +132,20 @@ function FontManager:replaceEngineFunctions()
 		["draw"] = draw
 	}
 
+
+	local isDrawing = false
+
 	
 	draw = function()
 
 		for _, cache in pairs(self.cache3D) do cache.delete = true end
-		for _, cache in pairs(self.cache2D) do cache.delete = true end
+		for _, cache in pairs(self.cache2D) do cache.delete = not cache.defer end
+
+		isDrawing = true
 
 		engine.draw()
+
+		isDrawing = false
 
 		for i = #self.cache3D, 1, -1 do
 
@@ -151,11 +158,10 @@ function FontManager:replaceEngineFunctions()
 
 		local toRemove = {}
 
-		for i = 1, #self.cache2D do
-		
-			local cache = self.cache2D[i]
+		for i, cache in pairs(self.cache2D) do
 
 			if cache.delete then
+
 				for _, overlay in pairs(cache.overlays) do table.insert(self.cachedOverlays, overlay) end
 
 				for _, line in pairs(cache.lines) do
@@ -166,6 +172,23 @@ function FontManager:replaceEngineFunctions()
 				end
 
 				table.insert(toRemove, i)
+				continue
+
+			end
+
+			if cache.defer then
+
+				for _, overlay in pairs(cache.overlays) do overlay:render() end
+
+				for _, line in pairs(cache.lines) do
+
+					if line.underline ~= nil then line.underline:render() end
+					if line.strikethrough ~= nil then line.strikethrough:render() end
+
+				end
+
+				cache.defer = false
+
 			end
 
 		end
@@ -797,7 +820,8 @@ function FontManager:replaceEngineFunctions()
 				["text"] = text,
 				["fontName"] = fontName,
 				["width"] = textWidth,
-				["lines"] = {}
+				["lines"] = {},
+				["defer"] = false
 			}
 
 			for i, line in pairs(lines) do
@@ -816,17 +840,13 @@ function FontManager:replaceEngineFunctions()
 
 		if cachedRender == nil then return end
 
+		cachedRender.defer = not isDrawing
+
 		local colour = args.colour
 
-		if cachedRender.colour ~= colour then
-			
-			cachedRender.colour = colour
-
-			for _, overlay in pairs(cachedRender.overlays) do
-				overlay:setColor(colour[1], colour[2], colour[3], colour[4])
-				overlay:render()
-			end
-
+		for _, overlay in pairs(cachedRender.overlays) do
+			overlay:setColor(colour[1], colour[2], colour[3], colour[4])
+			if isDrawing then overlay:render() end
 		end
 
 		if args.underline or args.strikethrough then
@@ -854,7 +874,7 @@ function FontManager:replaceEngineFunctions()
 
 					if overlay ~= nil then
 						overlay:setColor(colour[1], colour[2], colour[3], colour[4])
-						overlay:render()
+						if isDrawing then overlay:render() end
 
 					end
 
@@ -882,7 +902,7 @@ function FontManager:replaceEngineFunctions()
 					if overlay ~= nil then
 
 						overlay:setColor(colour[1], colour[2], colour[3], colour[4])
-						overlay:render()
+						if isDrawing then overlay:render() end
 
 					end
 
