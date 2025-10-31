@@ -49,6 +49,10 @@ local closestCharacters = {
 }
 
 local invalidCharacters = {
+	[8592] = true,
+	[8593] = true,
+	[8594] = true,
+	[8595] = true,
 	[9003] = true,
 	[9166] = true
 }
@@ -59,6 +63,8 @@ function FontManager.new()
 	local self = setmetatable({}, FontManager_mt)
 
 	self.fonts = {}
+	self.languages = {}
+	self.language = "latin"
 	self.defaultFont = "nunito_sans"
 	self.missingFonts = {}
 	self.cache2D = {}
@@ -225,11 +231,7 @@ function FontManager:replaceEngineFunctions()
 
 	setTextFont = function(fontName)
 
-		if fontName == nil or self.fonts[fontName] == nil then
-			self.args.font = self.defaultFont
-		else
-			self.args.font = fontName
-		end
+		self.args.font = fontName
 
 	end
 
@@ -353,18 +355,6 @@ function FontManager:replaceEngineFunctions()
 
 		fontName = fontName or args.font or self.defaultFont
 
-		if self.fonts[fontName] == nil then
-			
-			if self.missingFonts[fontName] == nil then
-				self.missingFonts[fontName] = true
-				Logging.error(string.format("FontLibrary - requested font \'%s\' not found (renderText3D)", fontName))
-				printCallstack()
-			end
-
-			fontName = self.defaultFont
-
-		end
-
 
 		local variationName = "regular"
 
@@ -392,7 +382,7 @@ function FontManager:replaceEngineFunctions()
 		setWorldTranslation(node, x, y, z)
 		setWorldRotation(node, rx, ry, rz)
 
-		local font = self.fonts[fontName]
+		local font = self:getFont(fontName)
 		local variationNode = font.nodes[variationName]
 		local xOffset, yOffset = 0, 0
 
@@ -441,18 +431,6 @@ function FontManager:replaceEngineFunctions()
 		local args = self.args
 		fontName = fontName or args.font or self.defaultFont
 
-		if self.fonts[fontName] == nil then
-			
-			if self.missingFonts[fontName] == nil then
-				self.missingFonts[fontName] = true
-				Logging.error(string.format("FontLibrary - requested font \'%s\' not found (create3DLinkedText)", fontName))
-				printCallstack()
-			end
-
-			fontName = self.defaultFont
-
-		end
-
 
 		local variationName = "regular"
 
@@ -471,7 +449,7 @@ function FontManager:replaceEngineFunctions()
 		setTranslation(node, x + 0.25 * size, y, z)
 		setRotation(node, rx, ry + math.pi / 2, rz)
 
-		local font = self.fonts[fontName]
+		local font = self:getFont(fontName)
 		local variationNode = font.nodes[variationName]
 		local xOffset, yOffset = 0, 0
 
@@ -649,20 +627,8 @@ function FontManager:replaceEngineFunctions()
 			g_mpLoadingScreen.balanceText:setText(g_i18n:formatMoney(g_mpLoadingScreen.missionInfo.money or g_mpLoadingScreen.missionInfo.initialMoney))
 
 		end
-
-		fontName = fontName or self.args.font or self.defaultFont
 		
-		if self.fonts[fontName] == nil then
-			
-			if self.missingFonts[fontName] == nil then
-				self.missingFonts[fontName] = true
-				Logging.error(string.format("FontLibrary - requested font \'%s\' not found (renderText)", fontName))
-				printCallstack()
-			end
-
-			fontName = self.defaultFont
-
-		end
+		fontName = fontName or self.args.font or self.defaultFont
 
 		local variationName = "regular"
 
@@ -695,7 +661,8 @@ function FontManager:replaceEngineFunctions()
 		if cachedRender == nil then
 
 			local overlays = {}
-			local font = self.fonts[fontName]
+			local font = self:getFont(fontName)
+			scale = scale * font.scale
 			local width, height = size, size
 			local lines = { { ["text"] = "", ["width"] = 0, ["x"] = x } }
 
@@ -718,7 +685,7 @@ function FontManager:replaceEngineFunctions()
 				if (cx1 == 0 and cy1 == 0 and cx2 == 1 and cy2 == 1) or (posX >= cx1 and posX + overlayWidth <= cx2 and posY >= cy1 and posY + overlayHeight <= cy2) then
 					uvs = variation.uvs
 				else
-					isRendered, overlayWidth, overlayHeight, uvs = character:getClippedUVs(variationName, posX, posX + overlayWidth, posY, posY + overlayHeight, cx1, cy1, cx2, cy2)
+					isRendered, overlayWidth, overlayHeight, uvs = character:getClippedUVs(variationName, posX, posX + overlayWidth, posY, posY + overlayHeight, cx1, cy1, cx2, cy2, text)
 					if not isRendered then return end
 					overlayWidth, overlayHeight = overlayWidth * scale, overlayHeight * scale
 				end
@@ -774,7 +741,7 @@ function FontManager:replaceEngineFunctions()
 				end
 
 				line.text = line.text .. word
-				line.width = line.width + wordWidth
+				line.width = line.width + wordWidth / font.scale
 
 				if j ~= #words then
 					line.text = line.text .. " "
@@ -1020,10 +987,16 @@ function FontManager:loadFont(xmlFile, key, directory)
 
 	local transformGroup = clone(self.template, true, false, false)
 
+	local language = xmlFile:getString(key .. "#language", "latin")
 	local name = xmlFile:getString(key .. "#name")
 	local id, i = name, 0
 
-	while self.fonts[id] ~= nil do
+	if self.fonts[language] == nil then
+		self.fonts[language] = {}
+		self.languages[language] = {}
+	end
+
+	while self.fonts[language][id] ~= nil do
 
 		i = i + 1
 		id = name .. "_" .. i
@@ -1031,21 +1004,28 @@ function FontManager:loadFont(xmlFile, key, directory)
 	end
 
 	setName(transformGroup, id)
+
+	if xmlFile:getBool(key .. "#default", false) then self.languages[language].default = id end
 	
 	local font = {
 		["name"] = name,
 		["id"] = id,
 		["nodes"] = {},
-		["width"] = xmlFile:getInt(key .. "#width", 64),
-		["height"] = xmlFile:getInt(key .. "#height", 4),
+		["imageWidth"] = xmlFile:getInt(key .. ".image#width", 8192),
+		["imageHeight"] = xmlFile:getInt(key .. ".image#height", 256),
+		["cellWidth"] = xmlFile:getInt(key .. ".cell#width", 128),
+		["cellHeight"] = xmlFile:getInt(key .. ".cell#height", 128),
 		["variations"] = {
 			["regular"] = string.format("%s%s.dds", directory, name),
 			["bold"] = string.format("%s%sBold.dds", directory, name),
 			["italic"] = string.format("%s%sItalic.dds", directory, name),
 			["boldItalic"] = string.format("%s%sBoldItalic.dds", directory, name)
 		},
-		["characters"] = {}
+		["characters"] = {},
+		["useable"] = xmlFile:getBool(key .. "#useable", true)
 	}
+
+	font.scale = 128 / font.cellWidth
 
 	local files = {
 		["regular"] = string.format("%s%s_alpha.dds", directory, name),
@@ -1063,10 +1043,9 @@ function FontManager:loadFont(xmlFile, key, directory)
 		local node = clone(templateNode, true, false, false)
 
 		setName(node, variation)
-
 		local material = setMaterialCustomMapFromFile(getMaterial(node, 0), "alphaMap", file, false, true, false)
 		setMaterial(node, material, 0)
-		setShaderParameter(node, "widthAndHeight", font.width, font.height, nil, nil, false)
+		setShaderParameter(node, "widthAndHeight", font.imageWidth / font.cellWidth, (font.imageHeight * 2) / font.cellHeight, nil, nil, false)
 
 		font.nodes[variation] = node
 
@@ -1076,18 +1055,20 @@ function FontManager:loadFont(xmlFile, key, directory)
 		
 		local character = FontCharacter.new(font, spacing)
 
-		character:loadFromXMLFile(xmlFile, charKey)
+		character:loadFromXMLFile(xmlFile, charKey, font.imageWidth, font.imageHeight, font.cellWidth, font.cellHeight)
 
 		font.characters[character.byte] = character
 		
 	end)
 
-	self.fonts[id] = font
+	self.fonts[language][id] = font
 
-	if self.settingsManager ~= nil then self.settingsManager.addFont(id, name) end
-	if self.fontViewerDialog ~= nil then self.fontViewerDialog:addFont(id, name) end
+	if self.settingsManager ~= nil and language == self.language and font.useable then self.settingsManager.addFont(id, name) end
+	if self.fontViewerDialog ~= nil and language == self.language and font.useable then self.fontViewerDialog:addFont(id, name) end
 
-	print(string.format("FontLibrary - Loaded font \'%s\' (%s)", name, id))
+	print(string.format("FontLibrary - Loaded font \'%s\' (%s) as %s", name, id, language:upper()))
+
+	if language ~= "latin" then self:configureLanguage() end
 
 	return id, name
 
@@ -1098,7 +1079,9 @@ function FontManager:setSettingsManager(manager)
 
 	self.settingsManager = manager
 
-	for id, font in pairs(self.fonts) do manager.addFont(id, font.name) end
+	for id, font in pairs(self.fonts[self.language]) do
+		if font.useable then manager.addFont(id, font.name) end
+	end
 
 	manager.reloadFonts()
 
@@ -1109,7 +1092,9 @@ function FontManager:setFontViewerDialog(dialog)
 
 	self.fontViewerDialog = dialog
 
-	for id, font in pairs(self.fonts) do dialog:addFont(id, font.name) end
+	for id, font in pairs(self.fonts[self.language]) do
+		if font.useable then dialog:addFont(id, font.name) end
+	end
 
 	dialog:reloadFonts()
 
@@ -1120,7 +1105,20 @@ function FontManager:setDefaultFont(id)
 
 	self.defaultFont = id or self.defaultFont
 
-	if self.fonts[self.defaultFont] == nil then self.defaultFont = "nunito_sans" end
+	if self.fonts[self.language][self.defaultFont] == nil then self.defaultFont = self.languages[self.language].default end
+
+end
+
+
+function FontManager:getFont(id)
+
+	if self.fonts[self.language][id] ~= nil then return self.fonts[self.language][id] end
+
+	if self.fonts.latin[id] ~= nil then return self.fonts.latin[id] end
+
+	if self.languages[self.language] ~= nil then return self.fonts[self.language][self.languages[self.language].default] end
+
+	return self.fonts.latin[self.languages.latin.default]
 
 end
 
@@ -1144,6 +1142,45 @@ function FontManager:getCharacter(font, character)
 	if closestCharacters[byte] ~= nil then return font.characters[closestCharacters[byte]], false end
 
 	return nil, false
+
+end
+
+
+function FontManager:configureLanguage()
+
+	local alphabets = {
+		["cyrillic"] = {
+			"uk",
+			"ru"
+		},
+		["chinese"] = {
+			"cs"
+		},
+		["japanese"] = {
+			"jp"
+		},
+		["korean"] = {
+			"kr"
+		}
+	}
+
+	for alphabet, languages in pairs(alphabets) do
+		for _, language in pairs(languages) do
+			if g_languageShort == language then
+				self.language = alphabet
+				return
+			end
+		end
+	end
+
+	self.language = "latin"
+
+end
+
+
+function FontManager:getValidFonts()
+
+	return self.fonts[self.language] or self.fonts.latin
 
 end
 
