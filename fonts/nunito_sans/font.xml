@@ -1,5 +1,7 @@
 <?xml version="1.0" ?>
-<font name="nunito_sans" width="64" language="latin">
+<font name="nunito_sans" language="latin" default="true">
+  <image width="8192" height="256"/>
+  <cell width="128" height="128"/>
   <character uvIndex="0" character="!" byte="33" type="special">
     <regular x="4" y="0" left="29.0" right="34.0" width="19"/>
     <bold x="4" y="0" left="28.0" right="35.0" width="19"/>
