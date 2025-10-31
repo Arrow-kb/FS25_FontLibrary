@@ -7,6 +7,7 @@ For normal users, there is a setting to change the default UI font of the game.
 Includes an easy to use python tool that automatically converts TTF and OTF fonts into game-ready DDS files with the required mipmaps and mod data.
 
 Latin Pack: https://github.com/Arrow-kb/FS25_FontLibrary_LatinPack
+
 Chinese Pack: https://github.com/Arrow-kb/FS25_FontLibrary_ChinesePack
 
 # Screenshots
