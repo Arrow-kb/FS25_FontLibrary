@@ -14,12 +14,15 @@ import os
 import subprocess
 import re
 import math
+import decimal_converter
 
 sys.excepthook = showExceptionAndExit
 
-
+IMAGE_WIDTH = 8192
+IMAGE_HEIGHT = 256
 CELL_WIDTH = 128
 CELL_HEIGHT = 128
+BOLD_STROKE_WIDTH = 2
 
 
 def convertToItalic(char, font, strokeWidth, char_width, char_height):
@@ -38,8 +41,8 @@ def findFirstAndLastWhitePixel(image, startX, startY):
     xCoordinates = []
     width, height = image.size
     
-    for y in range(startY, startY + 128 > height and height or (startY + 128)):
-        for x in range(startX, startX + 128 > width and width or (startX + 128)):
+    for y in range(startY, startY + CELL_HEIGHT > height and height or (startY + CELL_HEIGHT)):
+        for x in range(startX, startX + CELL_WIDTH > width and width or (startX + CELL_WIDTH)):
             r, g, b, a = image.getpixel((x, y))
             if r > 0 and g > 0 and b > 0 and a > 0:
                 xCoordinates.append(x)
@@ -62,19 +65,21 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
 
     fixedWidth = fixedWidth or isItalic
 
-    IMAGE_WIDTH = 8192
-    IMAGE_HEIGHT = fixedWidth and 512 or 256
+    imageHeight = IMAGE_HEIGHT
+
+    if fixedWidth:
+        imageHeight *= 2
 
     buildCharacterDb = characters == None
     characters = characters or {}
 
     try:
-        image = Image.new('RGBA', (IMAGE_WIDTH, IMAGE_HEIGHT), bgColour)
+        image = Image.new('RGBA', (IMAGE_WIDTH, imageHeight), bgColour)
         draw = ImageDraw.Draw(image)
         
         current_x = 0
         row = 0
-        max_rows = IMAGE_HEIGHT // CELL_HEIGHT
+        max_rows = imageHeight // CELL_HEIGHT
 
         for char in text:
 
@@ -100,7 +105,7 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
                 italic_image, italicXOffset, italicWidth = convertToItalic(char, font, strokeWidth, char_width, char_height)
                 image.paste(italic_image, (current_x, y_pos), italic_image)
             else:
-                draw.text((current_x + (fixedWidth and (CELL_WIDTH / 2) or 4), y_pos + 64), char, font=font, fill=textColour, anchor = (fixedWidth and "mm" or "lm"), stroke_width=strokeWidth)
+                draw.text((current_x + (fixedWidth and (CELL_WIDTH / 2) or 4), y_pos + CELL_HEIGHT / 2), char, font=font, fill=textColour, anchor = (fixedWidth and "mm" or "lm"), stroke_width=strokeWidth)
 
             byte = ord(char)
 
@@ -171,10 +176,10 @@ if len(sys.argv) == 0 or not os.path.isfile(sys.argv[1]):
 font_path = sys.argv[1]
 print("Font ID does not have to be unique; FontLibrary will make it unique and return the unique id")
 font_name = input("Enter the id of the font (eg: GENERIC): ")
-font_language = input("Enter the language of the font (latin, cyrillic): ") or "latin"
+font_language = input("Enter the language of the font (latin, cyrillic, chinese): ") or "latin"
 stroke_width = float(input("Enter the stroke width (default 0): ") or "0")
 
-trueTypeFont = TTFont(font_path)
+trueTypeFont = TTFont(font_path, fontNumber=0)
 cmap = trueTypeFont.getBestCmap()
 
 text = ""
@@ -195,11 +200,21 @@ charBytes = {
     ]
 }
 
-if not font_language in charBytes:
+byteRanges = None
+
+#TODO basic latin characters required for all languages
+if font_language == "chinese":
+    byteRanges = decimal_converter.getDecimalsFromFile(f"{font_language}.txt")
+    CELL_WIDTH = 64
+    CELL_HEIGHT = 64
+    BOLD_STROKE_WIDTH = 1
+elif font_language in charBytes:
+    byteRanges = charBytes[font_language]
+else:
     input("Invalid language")
     sys.exit()
 
-for byteRange in charBytes[font_language]:
+for byteRange in byteRanges:
     for byte in range(byteRange["start"], byteRange["end"] + 1):
         text += chr(byte)
 
@@ -213,6 +228,22 @@ for char in text:
 if len(charsToRemove) > 0:
     text = re.sub(f"[{charsToRemove}]", "", text)
 
+print(f"Total Characters: {len(text)}")
+IMAGE_HEIGHT = (len(text) * CELL_WIDTH) / IMAGE_WIDTH * CELL_HEIGHT
+
+
+if font_language == "latin" or font_language == "cyrillic":
+    IMAGE_HEIGHT /= 2
+
+IMAGE_HEIGHT = max(IMAGE_HEIGHT, 256)
+
+
+for i in range(1, 14):
+    if pow(2, i) >= IMAGE_HEIGHT:
+        IMAGE_HEIGHT = pow(2, i)
+        break
+
+print(f"Dimensions: {IMAGE_WIDTH}x{IMAGE_HEIGHT} ({CELL_WIDTH}x{CELL_HEIGHT})")
 
 
 if not os.path.exists(font_name):
@@ -243,13 +274,13 @@ except Exception as e:
 
     
 characters = createFontImage(f"{font_name}/{font_name}", None, "regular", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width)
-createFontImage(f"{font_name}/{font_name}Bold", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2)
+createFontImage(f"{font_name}/{font_name}Bold", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH)
 createFontImage(f"{font_name}/{font_name}Italic", characters, "italic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, isItalic=True, strokeWidth=stroke_width)
-createFontImage(f"{font_name}/{font_name}BoldItalic", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2, isItalic=True)
+createFontImage(f"{font_name}/{font_name}BoldItalic", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH, isItalic=True)
 createFontImage(f"{font_name}/{font_name}_alpha", characters, "regular", (0, 0, 0, 255), (255, 255, 255, 255), text, font, fixedWidth=True, isAlpha=True, strokeWidth=stroke_width)
-createFontImage(f"{font_name}/{font_name}Bold_alpha", characters, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2, fixedWidth=True, isAlpha=True)
+createFontImage(f"{font_name}/{font_name}Bold_alpha", characters, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH, fixedWidth=True, isAlpha=True)
 createFontImage(f"{font_name}/{font_name}Italic_alpha", characters, "italic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, isItalic=True, isAlpha=True, strokeWidth=stroke_width)
-createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", characters, "boldItalic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+2, isItalic=True, isAlpha=True)
+createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", characters, "boldItalic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH, isItalic=True, isAlpha=True)
 
 
 # Font XML
@@ -257,8 +288,15 @@ createFontImage(f"{font_name}/{font_name}BoldItalic_alpha", characters, "boldIta
 root = ET.Element("font")
 
 root.set("name", font_name)
-root.set("width", "64")
 root.set("language", font_language)
+
+root_image = ET.SubElement(root, "image")
+root_image.set("width", str(IMAGE_WIDTH))
+root_image.set("height", str(IMAGE_HEIGHT))
+
+root_cell = ET.SubElement(root, "cell")
+root_cell.set("width", str(CELL_WIDTH))
+root_cell.set("height", str(CELL_HEIGHT))
 
 i = 0
 for char in text:
