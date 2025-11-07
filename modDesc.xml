@@ -1,6 +1,6 @@
-<modDesc descVersion="103">
+<modDesc descVersion="104">
     <author>Arrow</author>
-    <version>1.0.0.0</version>
+    <version>1.0.0.6</version>
     <title>
         <en>Font Library</en>
         <de>Schriftartenbibliothek</de>
@@ -12,7 +12,15 @@
 
 For normal users, there is a setting to change the default UI font of the game. Currently contains 14 fonts among the latin font pack. This mod contains only the base game font (NunitoSans), it is required to download the font packs which contain more Latin fonts.
 
-UI text is turned off by default, it is required to turn it on in the settings. ]]>
+UI text is turned off by default, it is required to turn it on in the settings.
+
+
+Changelog:
+
+1.0.0.6
+- Fixed text changing colour
+- Fixed some occurences of missing text
+- Fixed issue with deleting text ]]>
         </en>
         <de>
         <![CDATA[ Dieser Mod ist ein Framework für andere Mods, mit dem Text sowohl in 2D als auch in 3D einfach mit benutzerdefinierten Schriftarten und Stilen gerendert werden kann, und fügt kursiven, unterstrichener und durchgestrichener Text.

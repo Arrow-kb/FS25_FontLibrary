@@ -1,0 +1,33 @@
+<l10n>
+	<texts>
+		<text name="fl_example_regular" text="这是常规文本！"/>
+		<text name="fl_example_bold" text="这是粗体文本！"/>
+		<text name="fl_example_italic" text="这是斜体文本！"/>
+		<text name="fl_example_boldItalic" text="这是粗斜体文本！"/>
+		<text name="fl_example_underlined" text="这是带下划线的文本！"/>
+		<text name="fl_example_strikethrough" text="这是删除线文本！"/>
+
+		<text name="fl_settings" text="字体库"/>
+
+		<text name="fl_settings_off" text="关闭"/>
+		<text name="fl_settings_on" text="开启"/>
+
+		<text name="fl_settings_font_label" text="更改字体"/>
+		<text name="fl_settings_font_tooltip" text="敏捷的棕色狐狸跳过了懒惰的狗。1234567890"/>
+
+		<text name="fl_settings_viewFonts_label" text="查看字体"/>
+		<text name="fl_settings_viewFonts_tooltip" text="查看已安装字体的变体"/>
+		<text name="fl_settings_viewFonts_text" text="查看已安装字体的变体"/>
+
+		<text name="fl_settings_sizeScale_label" text="文本大小"/>
+		<text name="fl_settings_sizeScale_tooltip" text="更改用户界面文本的大小"/>
+
+		<text name="fl_settings_render2D_label" text="自定义2D文本"/>
+		<text name="fl_settings_render2D_tooltip_1" text="2D（用户界面）文本将由引擎渲染"/>
+		<text name="fl_settings_render2D_tooltip_2" text="2D（用户界面）文本将由此模组渲染"/>
+
+		<text name="fl_settings_render3D_label" text="自定义3D文本"/>
+		<text name="fl_settings_render3D_tooltip_1" text="3D（世界）文本将由引擎渲染"/>
+		<text name="fl_settings_render3D_tooltip_2" text="3D（世界）文本将由此模组渲染"/>
+	</texts>
+</l10n>

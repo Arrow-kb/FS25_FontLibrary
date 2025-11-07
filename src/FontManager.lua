@@ -4,6 +4,10 @@
 local FontManager_mt = Class(FontManager)
 local modDirectory = g_currentModDirectory
 
+local modXML = XMLFile.load("fontModDesc", modDirectory .. "modDesc.xml")
+FontManager.VERSION = modXML:getString("modDesc.version")
+modXML:delete()
+
 
 local closestCharacters = {
 	[163] = 36,
@@ -78,6 +82,7 @@ function FontManager.new()
 
 	self.args = {
 		["colour"] = { 1, 1, 1, 1 },
+		["isButton"] = false,
 		["bold"] = false,
 		["italic"] = false,
 		["underline"] = false,
@@ -135,6 +140,7 @@ function FontManager:replaceEngineFunctions()
 		["setTextWrapWidth"] = setTextWrapWidth,
 		["setTextLineBounds"] = setTextLineBounds,
 		["setTextLineHeightScale"] = setTextLineHeightScale,
+		["getTextWidth"] = getTextWidth,
 		["draw"] = draw
 	}
 
@@ -208,7 +214,7 @@ function FontManager:replaceEngineFunctions()
 
 	setTextColor = function(r, g, b, a)
 
-		self.args.colour = { r, g, b, a } or { 1, 1, 1, 1 }
+		self.args.colour = { r, g, b, a }
 		engine.setTextColor(r, g, b, a)
 
 	end
@@ -338,6 +344,51 @@ function FontManager:replaceEngineFunctions()
 	setTextUseEngineRenderer = function(useEngineRenderer)
 
 		self.args.useEngineRenderer = useEngineRenderer
+
+	end
+
+
+	getTextWidth = function(size, text, fontName, is3D, isBold, isItalic)
+
+		if not is3D then return engine.getTextWidth(size, text) end
+
+		fontName = fontName or self.args.font or self.defaultFont
+
+		local variationName = "regular"
+
+		if isBold and isItalic then
+			variationName = "boldItalic"
+		elseif isBold then
+			variationName = "bold"
+		elseif isItalic then
+			variationName = "italic"
+		end
+
+		local font = self:getFont(fontName)
+		local width = 0
+
+		for i = 1, #text do
+
+			local character = self:getCharacter(font, utf8Substr(text, i - 1, 1))
+
+			if character == nil then
+				width = width + 0.5
+				continue
+			end
+
+			local variation = character:getVariation(variationName)
+			width = (width - variation.left) + variation.right
+
+		end
+
+		return width * size
+
+	end
+
+
+	setTextIsButton = function(isButton)
+
+		self.args.isButton = isButton or false
 
 	end
 
@@ -506,6 +557,9 @@ function FontManager:replaceEngineFunctions()
 		end
 
 
+		local lowestX, lowestY, highestX, highestY
+
+
 		for j, line in pairs(lines) do
 
 			if args.alignX == RenderText.ALIGN_CENTER then
@@ -554,11 +608,33 @@ function FontManager:replaceEngineFunctions()
 				end
 
 				local variation = character:getVariation(variationName)
+				if i == #line.text and (highestX == nil or line.x + xOffset > highestX) then highestX = line.x + xOffset end
 				xOffset = xOffset - variation.left
 				setTranslation(charNode, line.x + xOffset, line.y, 0)
+				if i == 1 and (lowestX == nil or line.x - variation.right < lowestX) then lowestX = line.x - variation.right end
 				xOffset = xOffset + variation.right
 
 			end
+
+			if lowestY == nil or line.y - 0.25 < lowestY then lowestY = line.y - 0.25 end
+			if highestY == nil or line.y + 0.5 > highestY then highestY = line.y + 0.5 end
+
+		end
+
+
+		if args.isButton then
+
+			local start = createTransformGroup("start")
+			local width = createTransformGroup("width")
+			local height = createTransformGroup("height")
+
+			link(node, start)
+			link(node, width)
+			link(node, height)
+
+			setTranslation(start, lowestX, lowestY, 0)
+			setTranslation(width, highestX, lowestY, 0)
+			setTranslation(height, lowestX, highestY, 0)
 
 		end
 
@@ -596,7 +672,7 @@ function FontManager:replaceEngineFunctions()
 
 	function delete3DLinkedText(node)
 
-		if self.cache3DLinked[node] ~= nil then delete(node) end
+		if entityExists(node) then delete(node) end
 
 		self.cache3DLinked[node] = nil
 
@@ -642,10 +718,25 @@ function FontManager:replaceEngineFunctions()
 
 		local lineConfig = args.lines
 		local cachedRender
+		local colour = args.colour
+		local scale = size * 10 * self.sizeScale
+		local engineY = y
+
+		if args.alignY == RenderText.VERTICAL_ALIGN_BASELINE then
+			y = y - self.yOffset.baseline * scale
+		elseif args.alignY == RenderText.VERTICAL_ALIGN_TOP then
+			y = y - self.yOffset.baseline * scale
+		elseif args.alignY == RenderText.VERTICAL_ALIGN_MIDDLE then
+			y = y - self.yOffset.middle * scale
+		elseif args.alignY == RenderText.VERTICAL_ALIGN_BOTTOM then
+			y = y - self.yOffset.middle * scale * 2
+		end
 
 		for _, cache in pairs(self.cache2D) do
 
-			if cache.x == x and cache.y == y and cache.size == size and cache.text == text and cache.fontName == fontName then
+			local cacheColour = cache.colour
+
+			if cache.x == x and cache.y == y and cache.size == size and cache.text == text and cache.fontName == fontName and cacheColour[1] == colour[1] and cacheColour[2] == colour[2] and cacheColour[3] == colour[3] and cacheColour[4] == colour[4] then
 				cache.delete = false
 				cachedRender = cache
 				break
@@ -653,10 +744,7 @@ function FontManager:replaceEngineFunctions()
 
 		end
 		
-		local args = self.args
-		local scale = size * 10 * self.sizeScale
 		local cx1, cy1, cx2, cy2 = unpack(args.clip)
-		local engineY = y
 
 		if cachedRender == nil then
 
@@ -665,16 +753,6 @@ function FontManager:replaceEngineFunctions()
 			scale = scale * font.scale
 			local width, height = size, size
 			local lines = { { ["text"] = "", ["width"] = 0, ["x"] = x } }
-
-			if args.alignY == RenderText.VERTICAL_ALIGN_BASELINE then
-				y = y - self.yOffset.baseline * scale
-			elseif args.alignY == RenderText.VERTICAL_ALIGN_TOP then
-				y = y - self.yOffset.baseline * scale
-			elseif args.alignY == RenderText.VERTICAL_ALIGN_MIDDLE then
-				y = y - self.yOffset.middle * scale
-			elseif args.alignY == RenderText.VERTICAL_ALIGN_BOTTOM then
-				y = y - self.yOffset.middle * scale * 2
-			end
 
 
 			local function writeCharacter(character, variation, posX, posY)
@@ -703,6 +781,7 @@ function FontManager:replaceEngineFunctions()
 				overlay:setDimension(overlayWidth, overlayHeight)
 				overlay:setPosition(posX, posY)
 				overlay:setUVs(uvs)
+				overlay:setColor(colour[1], colour[2], colour[3], colour[4])
 
 				table.insert(overlays, overlay)
 
@@ -785,6 +864,7 @@ function FontManager:replaceEngineFunctions()
 				["y"] = y,
 				["size"] = size,
 				["text"] = text,
+				["colour"] = colour,
 				["fontName"] = fontName,
 				["width"] = textWidth,
 				["lines"] = {},
@@ -811,9 +891,10 @@ function FontManager:replaceEngineFunctions()
 
 		local colour = args.colour
 
-		for _, overlay in pairs(cachedRender.overlays) do
-			overlay:setColor(colour[1], colour[2], colour[3], colour[4])
-			if isDrawing then overlay:render() end
+		if isDrawing then
+
+			for _, overlay in pairs(cachedRender.overlays) do overlay:render() end
+
 		end
 
 		if args.underline or args.strikethrough then
