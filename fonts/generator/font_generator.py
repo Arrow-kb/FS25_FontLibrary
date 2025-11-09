@@ -5,6 +5,9 @@ def showExceptionAndExit(exc_type, exc_value, tb):
     sys.exit(-1)
 
 
+# nunito_sans default stroke width = 1.75
+
+
 from PIL import Image, ImageDraw, ImageFont
 from fontTools.ttLib import TTFont
 import xml.etree.ElementTree as ET
@@ -22,7 +25,8 @@ IMAGE_WIDTH = 8192
 IMAGE_HEIGHT = 256
 CELL_WIDTH = 128
 CELL_HEIGHT = 128
-BOLD_STROKE_WIDTH = 2
+BOLD_STROKE_WIDTH = 1.5
+STROKE_WIDTHS = [0, 1.5]
 
 
 def convertToItalic(char, font, strokeWidth, char_width, char_height):
@@ -61,7 +65,7 @@ def getIsCharacterSupported(cmap, char):
         return False
 
 
-def createFontImage(filename, characters, varType, bgColour, textColour, text, font, strokeWidth=0, fixedWidth=False, isItalic=False, isAlpha=False):
+def createFontImage(filename, characters, varType, bgColour, textColour, text, font, strokeWidth=0, fixedWidth=False, isItalic=False, isAlpha=False, strokeWidthKey=0):
 
     fixedWidth = fixedWidth or isItalic
 
@@ -105,7 +109,7 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
                 italic_image, italicXOffset, italicWidth = convertToItalic(char, font, strokeWidth, char_width, char_height)
                 image.paste(italic_image, (current_x, y_pos), italic_image)
             else:
-                draw.text((current_x + (fixedWidth and (CELL_WIDTH / 2) or 4), y_pos + CELL_HEIGHT / 2), char, font=font, fill=textColour, anchor = (fixedWidth and "mm" or "lm"), stroke_width=strokeWidth)
+                draw.text((current_x + (fixedWidth and (CELL_WIDTH / 2) or 5), y_pos + CELL_HEIGHT / 2), char, font=font, fill=textColour, anchor = (fixedWidth and "mm" or "lm"), stroke_width=strokeWidth)
 
             byte = ord(char)
 
@@ -115,9 +119,11 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
                     "character": char,
                     "byte": byte,
                     varType: {
-                        "width": isItalic and italicWidth or char_width,
-                        "x": current_x + (isItalic and italicXOffset or (fixedWidth and 0) or 4),
-                        "y": y_pos
+                        str(strokeWidthKey): {
+                            "width": isItalic and italicWidth or char_width,
+                            "x": current_x + (isItalic and italicXOffset or (fixedWidth and 0) or 5),
+                            "y": y_pos
+                        }
                     }
                 }
 
@@ -125,20 +131,23 @@ def createFontImage(filename, characters, varType, bgColour, textColour, text, f
 
                 leftX, rightX = findFirstAndLastWhitePixel(image, current_x, y_pos)
 
-                characters[byte][varType]["left"] = (leftX - current_x) / 2
-                characters[byte][varType]["right"] = (rightX - current_x) / 2
+                characters[byte][varType]["0"]["left"] = (leftX - current_x) / 2
+                characters[byte][varType]["0"]["right"] = (rightX - current_x) / 2
                 
             else:
 
-                characters[byte][varType] = {
+                if characters[byte].get(varType) == None:
+                    characters[byte][varType] = {}
+
+                characters[byte][varType][str(strokeWidthKey)] = {
                     "width": isItalic and italicWidth or char_width,
-                    "x": current_x + (isItalic and italicXOffset or (fixedWidth and 0) or 4),
+                    "x": current_x + (isItalic and italicXOffset or (fixedWidth and 0) or 5),
                     "y": y_pos
                 }
                 
 
-            # 4px padding to char_width to prevent hooked characters appearing under adjacent characters
-            current_x += fixedWidth and CELL_WIDTH or (char_width + strokeWidth * 2 + 8)
+            # 5px padding to char_width to prevent hooked characters appearing under adjacent characters
+            current_x += fixedWidth and CELL_WIDTH or (char_width + strokeWidth * 2 + 10)
 
             
         image.save(filename + '.png', 'PNG')
@@ -272,11 +281,15 @@ except Exception as e:
     input(f"Error: {str(e)}")
     sys.exit(1)
 
+characters = None
+
+for i in STROKE_WIDTHS:
     
-characters = createFontImage(f"{font_name}/{font_name}", None, "regular", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width)
-createFontImage(f"{font_name}/{font_name}Bold", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH)
-createFontImage(f"{font_name}/{font_name}Italic", characters, "italic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, isItalic=True, strokeWidth=stroke_width)
-createFontImage(f"{font_name}/{font_name}BoldItalic", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH, isItalic=True)
+    characters = createFontImage(f"{font_name}/{font_name}_{i}", characters, "regular", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+i, strokeWidthKey=i)
+    createFontImage(f"{font_name}/{font_name}Bold_{i}", characters, "bold", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH+i*0.25, strokeWidthKey=i)
+    createFontImage(f"{font_name}/{font_name}Italic_{i}", characters, "italic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, isItalic=True, strokeWidth=stroke_width+i, strokeWidthKey=i)
+    createFontImage(f"{font_name}/{font_name}BoldItalic_{i}", characters, "boldItalic", (0, 0, 0, 0), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH+i*0.25, isItalic=True, strokeWidthKey=i)
+
 createFontImage(f"{font_name}/{font_name}_alpha", characters, "regular", (0, 0, 0, 255), (255, 255, 255, 255), text, font, fixedWidth=True, isAlpha=True, strokeWidth=stroke_width)
 createFontImage(f"{font_name}/{font_name}Bold_alpha", characters, "bold", (0, 0, 0, 255), (255, 255, 255, 255), text, font, strokeWidth=stroke_width+BOLD_STROKE_WIDTH, fixedWidth=True, isAlpha=True)
 createFontImage(f"{font_name}/{font_name}Italic_alpha", characters, "italic", (0, 0, 0, 255), (255, 255, 255, 255), text, font, isItalic=True, isAlpha=True, strokeWidth=stroke_width)
@@ -320,29 +333,44 @@ for char in text:
     italic = ET.SubElement(character, "italic")
     boldItalic = ET.SubElement(character, "boldItalic")
 
-    regular.set("x", str(item["regular"]["x"]))
-    regular.set("y", str(item["regular"]["y"]))
-    regular.set("left", str(item["regular"]["left"]))
-    regular.set("right", str(item["regular"]["right"]))
-    regular.set("width", str(item["regular"]["width"]))
+    for j in STROKE_WIDTHS:
+    
+        regularStroke = ET.SubElement(regular, "stroke")
+        boldStroke = ET.SubElement(bold, "stroke")
+        italicStroke = ET.SubElement(italic, "stroke")
+        boldItalicStroke = ET.SubElement(boldItalic, "stroke")
 
-    bold.set("x", str(item["bold"]["x"]))
-    bold.set("y", str(item["bold"]["y"]))
-    bold.set("left", str(item["bold"]["left"]))
-    bold.set("right", str(item["bold"]["right"]))
-    bold.set("width", str(item["bold"]["width"]))
+        regularStroke.set("strokeWidth", str(j))
+        boldStroke.set("strokeWidth", str(j))
+        italicStroke.set("strokeWidth", str(j))
+        boldItalicStroke.set("strokeWidth", str(j))
 
-    italic.set("x", str(item["italic"]["x"]))
-    italic.set("y", str(item["italic"]["y"]))
-    italic.set("left", str(item["italic"]["left"]))
-    italic.set("right", str(item["italic"]["right"]))
-    italic.set("width", str(item["italic"]["width"]))
+        regularStroke.set("x", str(item["regular"][str(j)]["x"]))
+        regularStroke.set("y", str(item["regular"][str(j)]["y"]))
+        regularStroke.set("width", str(item["regular"][str(j)]["width"]))
 
-    boldItalic.set("x", str(item["boldItalic"]["x"]))
-    boldItalic.set("y", str(item["boldItalic"]["y"]))
-    boldItalic.set("left", str(item["boldItalic"]["left"]))
-    boldItalic.set("right", str(item["boldItalic"]["right"]))
-    boldItalic.set("width", str(item["boldItalic"]["width"]))
+        boldStroke.set("x", str(item["bold"][str(j)]["x"]))
+        boldStroke.set("y", str(item["bold"][str(j)]["y"]))
+        boldStroke.set("width", str(item["bold"][str(j)]["width"]))
+
+        italicStroke.set("x", str(item["italic"][str(j)]["x"]))
+        italicStroke.set("y", str(item["italic"][str(j)]["y"]))
+        italicStroke.set("width", str(item["italic"][str(j)]["width"]))
+
+        boldItalicStroke.set("x", str(item["boldItalic"][str(j)]["x"]))
+        boldItalicStroke.set("y", str(item["boldItalic"][str(j)]["y"]))
+        boldItalicStroke.set("width", str(item["boldItalic"][str(j)]["width"]))
+
+        if j == 0:
+            
+            regularStroke.set("left", str(item["regular"]["0"]["left"]))
+            regularStroke.set("right", str(item["regular"]["0"]["right"]))
+            boldStroke.set("left", str(item["bold"]["0"]["left"]))
+            boldStroke.set("right", str(item["bold"]["0"]["right"]))
+            italicStroke.set("left", str(item["italic"]["0"]["left"]))
+            italicStroke.set("right", str(item["italic"]["0"]["right"]))
+            boldItalicStroke.set("left", str(item["boldItalic"]["0"]["left"]))
+            boldItalicStroke.set("right", str(item["boldItalic"]["0"]["right"]))
 
     i += 1
 
