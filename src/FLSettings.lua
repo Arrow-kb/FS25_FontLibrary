@@ -60,9 +60,18 @@ FLSettings.SETTINGS = {
 		["values"] = { 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0 },
 		["callback"] = FontManager.onSettingChanged
 	},
+
+	["screenResolutionAdjustment"] = {
+		["index"] = 4,
+		["type"] = "MultiTextOption",
+		["dynamicTooltip"] = true,
+		["default"] = g_fontManager:getDefaultScreenResolutionAdjustment(),
+		["values"] = { 1.5, 0 },
+		["callback"] = FontManager.onSettingChanged
+	},
 	
 	["render2D"] = {
-		["index"] = 4,
+		["index"] = 5,
 		["type"] = "BinaryOption",
 		["dynamicTooltip"] = true,
 		["default"] = 1,
@@ -72,7 +81,7 @@ FLSettings.SETTINGS = {
 	},
 	
 	["render3D"] = {
-		["index"] = 5,
+		["index"] = 6,
 		["type"] = "BinaryOption",
 		["dynamicTooltip"] = true,
 		["default"] = 2,
@@ -159,11 +168,12 @@ function FLSettings.initialize()
 	FLSettings.loadFromXMLFile()
 
 	local settingsPage = g_inGameMenu.pageSettings
-	local scrollPanel = settingsPage.gameSettingsLayout
+	local tempScrollPanel = settingsPage.gameSettingsLayout
+	local scrollPanel = settingsPage.generalSettingsLayout
 
 	local sectionHeader, binaryOptionElement, multiOptionElement, buttonElement
 
-	for _, element in pairs(scrollPanel.elements) do
+	for _, element in pairs(tempScrollPanel.elements) do
 
 		if element.name == "sectionHeader" and sectionHeader == nil then sectionHeader = element:clone(scrollPanel) end
 

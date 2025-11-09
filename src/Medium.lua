@@ -9,6 +9,7 @@
 local files = {
 	"gui/base/ButtonOverlay.lua",
 	"gui/elements/ButtonElement.lua",
+	"gui/elements/MultiTextOptionElement.lua",
 	"gui/elements/TextElement.lua",
 	"input/InputDisplayManager.lua",
 	"input/KeyboardHelper.lua",

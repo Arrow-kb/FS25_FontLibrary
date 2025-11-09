@@ -22,6 +22,12 @@
 		<text name="fl_settings_sizeScale_label" text="Text Size"/>
 		<text name="fl_settings_sizeScale_tooltip" text="Change the size of the UI text"/>
 
+		<text name="fl_settings_screenResolutionAdjustment_label" text="Resolution Scaling"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_1" text="Text will be rendered with higher density, appropriate for lower resolution screens"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_2" text="Text will be rendered with lower density, appropriate for higher resolution screens"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_1" text="Low Screen Res"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_2" text="High Screen Res"/>
+
 		<text name="fl_settings_render2D_label" text="Custom 2D Text"/>
 		<text name="fl_settings_render2D_tooltip_1" text="2D (UI) text will be rendered by the engine"/>
 		<text name="fl_settings_render2D_tooltip_2" text="2D (UI) text will be rendered by this mod"/>

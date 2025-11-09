@@ -49,7 +49,9 @@ local closestCharacters = {
 	[246] = 111,
 	[250] = 117,
 	[251] = 117,
-	[252] = 117
+	[252] = 117,
+	[8216] = 39,
+	[8217] = 39
 }
 
 local invalidCharacters = {
@@ -66,6 +68,8 @@ function FontManager.new()
 
 	local self = setmetatable({}, FontManager_mt)
 
+	self:setDefaultScreenResolutionAdjustment()
+
 	self.fonts = {}
 	self.languages = {}
 	self.language = "latin"
@@ -77,6 +81,7 @@ function FontManager.new()
 	self.cachedOverlays = {}
 	self.cachedLineOverlays = {}
 	self.sizeScale = 1
+	self.forceDeletion = false
 
 	self.render2D, self.render3D = true, true
 
@@ -172,7 +177,7 @@ function FontManager:replaceEngineFunctions()
 
 		for i, cache in pairs(self.cache2D) do
 
-			if cache.delete then
+			if cache.delete or self.forceDeletion then
 
 				for _, overlay in pairs(cache.overlays) do table.insert(self.cachedOverlays, overlay) end
 
@@ -188,7 +193,7 @@ function FontManager:replaceEngineFunctions()
 
 			end
 
-			if cache.defer then
+			if cache.defer and not self.forceDeletion then
 
 				for _, overlay in pairs(cache.overlays) do overlay:render() end
 
@@ -208,6 +213,8 @@ function FontManager:replaceEngineFunctions()
 		for i = #toRemove, 1, -1 do
 			table.remove(self.cache2D, toRemove[i])
 		end
+
+		self.forceDeletion = false
 
 	end
 
@@ -763,7 +770,7 @@ function FontManager:replaceEngineFunctions()
 				if (cx1 == 0 and cy1 == 0 and cx2 == 1 and cy2 == 1) or (posX >= cx1 and posX + overlayWidth <= cx2 and posY >= cy1 and posY + overlayHeight <= cy2) then
 					uvs = variation.uvs
 				else
-					isRendered, overlayWidth, overlayHeight, uvs = character:getClippedUVs(variationName, posX, posX + overlayWidth, posY, posY + overlayHeight, cx1, cy1, cx2, cy2, text)
+					isRendered, overlayWidth, overlayHeight, uvs = character:getClippedUVs(variationName, self.screenResolutionAdjustment, posX, posX + overlayWidth, posY, posY + overlayHeight, cx1, cy1, cx2, cy2, text)
 					if not isRendered then return end
 					overlayWidth, overlayHeight = overlayWidth * scale, overlayHeight * scale
 				end
@@ -776,8 +783,8 @@ function FontManager:replaceEngineFunctions()
 				else
 					overlay = Overlay.new()
 				end
-			
-				overlay:setImage(font.variations[variationName])
+
+				overlay:setImage(font.variations[variationName][self.screenResolutionAdjustment])
 				overlay:setDimension(overlayWidth, overlayHeight)
 				overlay:setPosition(posX, posY)
 				overlay:setUVs(uvs)
@@ -809,7 +816,7 @@ function FontManager:replaceEngineFunctions()
 						continue
 					end
 
-					local variation = character:getVariation(variationName)
+					local variation = character:getVariation(variationName, self.screenResolutionAdjustment)
 					wordWidth = wordWidth + variation.screenWidth * scale
 
 				end
@@ -848,7 +855,7 @@ function FontManager:replaceEngineFunctions()
 						continue
 					end
 
-					local variation = character:getVariation(variationName)
+					local variation = character:getVariation(variationName, self.screenResolutionAdjustment)
 					writeCharacter(character, variation, line.x + xOffset, (y - yOffset))
 					xOffset = xOffset + variation.screenWidth * scale
 
@@ -1097,10 +1104,22 @@ function FontManager:loadFont(xmlFile, key, directory)
 		["cellWidth"] = xmlFile:getInt(key .. ".cell#width", 128),
 		["cellHeight"] = xmlFile:getInt(key .. ".cell#height", 128),
 		["variations"] = {
-			["regular"] = string.format("%s%s.dds", directory, name),
-			["bold"] = string.format("%s%sBold.dds", directory, name),
-			["italic"] = string.format("%s%sItalic.dds", directory, name),
-			["boldItalic"] = string.format("%s%sBoldItalic.dds", directory, name)
+			["regular"] = {
+				[0] = string.format("%s%s_0.dds", directory, name),
+				[1.5] = string.format("%s%s_1.5.dds", directory, name)
+			},
+			["bold"] = {
+				[0] = string.format("%s%sBold_0.dds", directory, name),
+				[1.5] = string.format("%s%sBold_1.5.dds", directory, name)
+			},
+			["italic"] = {
+				[0] = string.format("%s%sItalic_0.dds", directory, name),
+				[1.5] = string.format("%s%sItalic_1.5.dds", directory, name)
+			},
+			["boldItalic"] = {
+				[0] = string.format("%s%sBoldItalic_0.dds", directory, name),
+				[1.5] = string.format("%s%sBoldItalic_1.5.dds", directory, name)
+			}
 		},
 		["characters"] = {},
 		["useable"] = xmlFile:getBool(key .. "#useable", true)
@@ -1266,9 +1285,30 @@ function FontManager:getValidFonts()
 end
 
 
+function FontManager:setDefaultScreenResolutionAdjustment()
+
+	local adjustment = 0
+
+	if g_screenWidth <= 2000 then adjustment = 1.5 end
+
+	self.screenResolutionAdjustment, self.defaultScreenResolutionAdjustment = adjustment, adjustment
+
+	print("FontManager:", string.format("\\___ Screen Resolution: %sx%s", g_screenWidth, g_screenHeight), string.format("\\___ Default 2D Rendering Adjustment: %s", adjustment))
+
+end
+
+
+function FontManager:getDefaultScreenResolutionAdjustment()
+
+	return self.defaultScreenResolutionAdjustment
+
+end
+
+
 function FontManager.onSettingChanged(setting, value)
 
 	g_fontManager[setting] = value
+	if setting == "screenResolutionAdjustment" then g_fontManager.forceDeletion = true end
 
 end
 

@@ -33,37 +33,52 @@ end
 
 function FontCharacter:loadVariation(xmlFile, key, imageWidth, imageHeight, cellWidth, cellHeight)
 
-	local variation = {}
+	local variation = {
+		["strokes"] = {}
+	}
 
-	variation.width = xmlFile:getInt(key .. "#width", cellWidth)
-	variation.height = xmlFile:getInt(key .. "#height", cellHeight)
+	xmlFile:iterate(key .. ".stroke", function(_, strokeKey)
 
-	variation.x = xmlFile:getInt(key .. "#x")
-	variation.y = xmlFile:getInt(key .. "#y")
+		local stroke = {}
+		local strokeWidth = xmlFile:getFloat(strokeKey .. "#strokeWidth", 0)
 
-	variation.left = (xmlFile:getFloat(key .. "#left") - 2) / (cellWidth / 2)
-	variation.right = (xmlFile:getFloat(key .. "#right") + 2) / (cellWidth / 2)
+		stroke.width = xmlFile:getInt(strokeKey .. "#width", cellWidth)
+		stroke.height = xmlFile:getInt(strokeKey .. "#height", cellHeight)
 
-	variation.screenWidth, variation.screenHeight = getNormalizedScreenValues(variation.width, variation.height)
-	variation.imageWidth, variation.imageHeight = imageWidth, imageHeight
+		stroke.x = xmlFile:getInt(strokeKey .. "#x")
+		stroke.y = xmlFile:getInt(strokeKey .. "#y")
 
-	variation.uvs = GuiUtils.getUVs({ variation.x, variation.y, variation.width, variation.height }, { imageWidth, imageHeight })
+		if strokeWidth == 0 then
+
+			stroke.left = (xmlFile:getFloat(strokeKey .. "#left") - 2) / (cellWidth / 2)
+			stroke.right = (xmlFile:getFloat(strokeKey .. "#right") + 2) / (cellWidth / 2)
+
+		end
+
+		stroke.screenWidth, stroke.screenHeight = getNormalizedScreenValues(stroke.width, stroke.height)
+		stroke.imageWidth, stroke.imageHeight = imageWidth, imageHeight
+
+		stroke.uvs = GuiUtils.getUVs({ stroke.x, stroke.y, stroke.width, stroke.height }, { imageWidth, imageHeight })
+
+		variation.strokes[strokeWidth] = stroke
+		
+	end)
 
 	return variation
 
 end
 
 
-function FontCharacter:getVariation(variation)
+function FontCharacter:getVariation(variation, strokeWidth)
 
-	return self.variations[variation]
+	return self.variations[variation].strokes[strokeWidth or 0]
 
 end
 
 
-function FontCharacter:getClippedUVs(variationName, leftX, rightX, bottomY, topY, minX, minY, maxX, maxY, text)
+function FontCharacter:getClippedUVs(variationName, strokeWidth, leftX, rightX, bottomY, topY, minX, minY, maxX, maxY, text)
 
-	local variation = self.variations[variationName]
+	local variation = self.variations[variationName].strokes[strokeWidth or 0]
 	local width, height = variation.width, variation.height
 
 	local x1, x2, y1, y2 = 0, variation.width, 0, variation.height

@@ -1,6 +1,6 @@
 <modDesc descVersion="104">
     <author>Arrow</author>
-    <version>1.0.0.6</version>
+    <version>1.0.0.7</version>
     <title>
         <en>Font Library</en>
         <de>Schriftartenbibliothek</de>
@@ -16,6 +16,12 @@ UI text is turned off by default, it is required to turn it on in the settings.
 
 
 Changelog:
+
+1.0.0.7
+- Added font stroke width scaling (fixes blurry/thin text on lower resolutions)
+- Slightly increased spacing between characters
+- Moved settings from Game to General
+- Fixed missing text on selected multi text option elements
 
 1.0.0.6
 - Fixed text changing colour
