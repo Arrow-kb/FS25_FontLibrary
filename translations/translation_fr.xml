@@ -22,6 +22,12 @@
 		<text name="fl_settings_sizeScale_label" text="Taille du texte"/>
 		<text name="fl_settings_sizeScale_tooltip" text="Modifier la taille du texte de l'interface utilisateur"/>
 
+		<text name="fl_settings_screenResolutionAdjustment_label" text="Mise à l'échelle de la résolution"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_1" text="Le texte sera rendu avec une densité plus élevée, appropriée pour les écrans à basse résolution"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_2" text="Le texte sera rendu avec une densité plus faible, appropriée pour les écrans à haute résolution"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_1" text="Basse Résolution"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_2" text="Haute Résolution"/>
+
 		<text name="fl_settings_render2D_label" text="Texte 2D personnalisé"/>
 		<text name="fl_settings_render2D_tooltip_1" text="Le texte 2D (interface utilisateur) sera rendu par le moteur."/>
 		<text name="fl_settings_render2D_tooltip_2" text="Le texte 2D (interface utilisateur) sera rendu par ce mod."/>

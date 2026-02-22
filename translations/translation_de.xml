@@ -22,6 +22,12 @@
 		<text name="fl_settings_sizeScale_label" text="Textgröße"/>
 		<text name="fl_settings_sizeScale_tooltip" text="Ändern Sie die Größe des UI-Textes"/>
 
+		<text name="fl_settings_screenResolutionAdjustment_label" text="Bildschirmauflösungsanpassung"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_1" text="Text wird mit höherer Dichte gerendert, geeignet für Bildschirme mit niedriger Auflösung"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_2" text="Text wird mit niedrigerer Dichte gerendert, geeignet für Bildschirme mit höherer Auflösung"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_1" text="Niedrige Bildschirmauflösung"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_2" text="Hohe Bildschirmauflösung"/>
+
 		<text name="fl_settings_render2D_label" text="Benutzerdefinierter 2D-Text"/>
 		<text name="fl_settings_render2D_tooltip_1" text="2D-Text (UI) wird von der Engine gerendert."/>
 		<text name="fl_settings_render2D_tooltip_2" text="2D-Text (UI) wird von diesem Mod gerendert."/>
