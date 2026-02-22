@@ -22,6 +22,12 @@
 		<text name="fl_settings_sizeScale_label" text="文本大小"/>
 		<text name="fl_settings_sizeScale_tooltip" text="更改用户界面文本的大小"/>
 
+		<text name="fl_settings_screenResolutionAdjustment_label" text="分辨率缩放"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_1" text="文本将以更高的密度渲染，适用于较低分辨率的屏幕"/>
+		<text name="fl_settings_screenResolutionAdjustment_tooltip_2" text="文本将以较低的密度渲染，适用于较高分辨率的屏幕"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_1" text="低屏幕分辨率"/>
+		<text name="fl_settings_screenResolutionAdjustment_texts_2" text="高屏幕分辨率"/>
+
 		<text name="fl_settings_render2D_label" text="自定义2D文本"/>
 		<text name="fl_settings_render2D_tooltip_1" text="2D（用户界面）文本将由引擎渲染"/>
 		<text name="fl_settings_render2D_tooltip_2" text="2D（用户界面）文本将由此模组渲染"/>
